@@ -326,15 +326,19 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	public boolean acceptsProfiles(String... profiles) {
 		Assert.notEmpty(profiles, "Must specify at least one profile");
 		for (String profile : profiles) {
+			// profile的名字前面加叹号！，代表反转；
 			if (StringUtils.hasLength(profile) && profile.charAt(0) == '!') {
 				if (!isProfileActive(profile.substring(1))) {
 					return true;
 				}
 			}
+			// 如果profile是激活的；
 			else if (isProfileActive(profile)) {
 				return true;
 			}
 		}
+
+		// 所有的profile都没有被激活；
 		return false;
 	}
 

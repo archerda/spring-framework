@@ -16,23 +16,22 @@
 
 package org.springframework.beans.factory.xml;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
-
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * {@link EntityResolver} implementation that attempts to resolve schema URLs into
@@ -55,6 +54,7 @@ import org.springframework.util.CollectionUtils;
  * @author Juergen Hoeller
  * @since 2.0
  */
+// 加载XSD类型的EntityResolver；
 public class PluggableSchemaResolver implements EntityResolver {
 
 	/**
@@ -105,6 +105,8 @@ public class PluggableSchemaResolver implements EntityResolver {
 
 	@Override
 	@Nullable
+	// 是XSD，那么publicId=null，systemId="http://www.springframework.org/schema/beans/spring-beans.xsd"
+	// 默认到META/Spring.schemas文件中找到systemId所对应的xsd文件并加载；
 	public InputSource resolveEntity(String publicId, @Nullable String systemId) throws IOException {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Trying to resolve XML entity with public id [" + publicId +
@@ -112,10 +114,14 @@ public class PluggableSchemaResolver implements EntityResolver {
 		}
 
 		if (systemId != null) {
+			// 从spring.schemas根据systemId获取xsd的地址；
 			String resourceLocation = getSchemaMappings().get(systemId);
 			if (resourceLocation != null) {
+
+				// 从classpath获取资源；
 				Resource resource = new ClassPathResource(resourceLocation, this.classLoader);
 				try {
+					// 把资源的inputStream转换成SAX的InputSource；
 					InputSource source = new InputSource(resource.getInputStream());
 					source.setPublicId(publicId);
 					source.setSystemId(systemId);
@@ -137,10 +143,11 @@ public class PluggableSchemaResolver implements EntityResolver {
 	/**
 	 * Load the specified schema mappings lazily.
 	 */
+	// 获取META-INF/spring.schemas下的所有dtd，并转换为map；
 	private Map<String, String> getSchemaMappings() {
 		Map<String, String> schemaMappings = this.schemaMappings;
 		if (schemaMappings == null) {
-			synchronized (this) {
+			synchronized (this) { // 双重校验锁
 				schemaMappings = this.schemaMappings;
 				if (schemaMappings == null) {
 					if (logger.isDebugEnabled()) {

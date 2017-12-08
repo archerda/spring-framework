@@ -16,14 +16,10 @@
 
 package org.springframework.util.xml;
 
-import java.io.BufferedReader;
-import java.io.CharConversionException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
+
+import java.io.*;
 
 /**
  * Detects whether an XML stream is using DTD- or XSD-based validation.
@@ -95,18 +91,25 @@ public class XmlValidationModeDetector {
 			String content;
 			while ((content = reader.readLine()) != null) {
 				content = consumeCommentTokens(content);
+				// 如果内容是空或者是注释则略过；
 				if (this.inComment || !StringUtils.hasText(content)) {
 					continue;
 				}
+
+				// 如果内容有 "DOCTYPE" 标识，说明是DTD验证模式，直接返回；
 				if (hasDoctype(content)) {
 					isDtdValidated = true;
 					break;
 				}
+
+				// 如果内容有开始标签了，说明是具体的配置内容了，而验证模式一定会在开始标签之前说明；
 				if (hasOpeningTag(content)) {
 					// End of meaningful data...
 					break;
 				}
 			}
+
+			// 如果不是DTD模式，就是XSD模式；
 			return (isDtdValidated ? VALIDATION_DTD : VALIDATION_XSD);
 		}
 		catch (CharConversionException ex) {
@@ -123,6 +126,7 @@ public class XmlValidationModeDetector {
 	/**
 	 * Does the content contain the DTD DOCTYPE declaration?
 	 */
+	// 判断内容是否有 "DOCTYPE" 标识；
 	private boolean hasDoctype(String content) {
 		return content.contains(DOCTYPE);
 	}
@@ -132,6 +136,7 @@ public class XmlValidationModeDetector {
 	 * in an XML comment then this method always returns false. It is expected that all comment
 	 * tokens will have consumed for the supplied content before passing the remainder to this method.
 	 */
+	// 判断内容是否有开始标签；
 	private boolean hasOpeningTag(String content) {
 		if (this.inComment) {
 			return false;
@@ -149,15 +154,19 @@ public class XmlValidationModeDetector {
 	 */
 	@Nullable
 	private String consumeCommentTokens(String line) {
+		// 如果开头和结尾都没有注释语句，那么直接返回行内容；
 		if (!line.contains(START_COMMENT) && !line.contains(END_COMMENT)) {
 			return line;
 		}
 		String currLine = line;
 		while ((currLine = consume(currLine)) != null) {
+			// 如果当前行不是注释并且不是以"<!--"开头，那么直接返回行内容；
 			if (!this.inComment && !currLine.trim().startsWith(START_COMMENT)) {
 				return currLine;
 			}
 		}
+
+		// 当前行是注释，返回null；
 		return null;
 	}
 

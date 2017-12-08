@@ -16,6 +16,9 @@
 
 package org.springframework.core.io;
 
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,9 +30,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
-
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * {@link Resource} implementation for {@code java.io.File} handles.

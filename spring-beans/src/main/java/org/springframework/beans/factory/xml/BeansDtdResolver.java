@@ -16,16 +16,15 @@
 
 package org.springframework.beans.factory.xml;
 
-import java.io.IOException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
-
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.lang.Nullable;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
+
+import java.io.IOException;
 
 /**
  * EntityResolver implementation for the Spring beans DTD,
@@ -41,6 +40,7 @@ import org.springframework.lang.Nullable;
  * @since 04.06.2003
  * @see ResourceEntityResolver
  */
+// 加载DTD类型的EntityResolver；
 public class BeansDtdResolver implements EntityResolver {
 
 	private static final String DTD_EXTENSION = ".dtd";
@@ -52,6 +52,8 @@ public class BeansDtdResolver implements EntityResolver {
 
 	@Override
 	@Nullable
+	// 是DTD，那么publicId="-//SPRING//DTD BEAN 2.0//EN", systemId="http://www.springframework.org/dtd/spring-beans-2.0.dtd"
+	// 直接截取systemId最后的xx.dtd然后去当前路径下寻找；
 	public InputSource resolveEntity(String publicId, @Nullable String systemId) throws IOException {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Trying to resolve XML entity with public ID [" + publicId +
@@ -61,6 +63,7 @@ public class BeansDtdResolver implements EntityResolver {
 			int lastPathSeparator = systemId.lastIndexOf("/");
 			int dtdNameStart = systemId.indexOf(DTD_NAME, lastPathSeparator);
 			if (dtdNameStart != -1) {
+				// 从当前类路径去获取spring-beans.dtd
 				String dtdFile = DTD_NAME + DTD_EXTENSION;
 				if (logger.isTraceEnabled()) {
 					logger.trace("Trying to locate [" + dtdFile + "] in Spring jar on classpath");
