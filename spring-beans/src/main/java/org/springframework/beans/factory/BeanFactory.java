@@ -138,6 +138,16 @@ public interface BeanFactory {
 	 * with the specified name
 	 * @throws BeansException if the bean could not be obtained
 	 */
+	/*
+	根据名称来返回实例，对于指定的bean，返回的bean可以是共享的也可以是独立的；
+
+	这个方法允许Spring BeanFactory作为Singleton或Prototype设计模式的替代品。
+	在Singleton bean的情况下，调用者可以保留对返回对象的引用。
+
+	将别名转换回相应的规范bean名称。 如果在这个工厂实例中找不到bean，将询问父级工厂。
+
+	 */
+	// TODO by archerda on 25/01/2018. 没懂这个 "Translates aliases back to the corresponding canonical bean name" 是啥意思
 	Object getBean(String name) throws BeansException;
 
 	/**
@@ -158,6 +168,11 @@ public interface BeanFactory {
 	 * @throws BeanNotOfRequiredTypeException if the bean is not of the required type
 	 * @throws BeansException if the bean could not be created
 	 */
+	/*
+	大部分功能和 getBean(String) 一致，
+	但是额外提供类型安全校验，如果得到的bean不是指定所需要的类型，
+	那么将会抛出 BeanNotOfRequiredTypeException 异常，这也就意味着这个方法不会抛出 ClassCastException 异常了；
+	 */
 	<T> T getBean(String name, @Nullable Class<T> requiredType) throws BeansException;
 
 	/**
@@ -173,6 +188,13 @@ public interface BeanFactory {
 	 * the affected bean isn't a prototype
 	 * @throws BeansException if the bean could not be created
 	 * @since 2.5
+	 */
+	/*
+	允许显式指定构造方法参数、工厂方法参数，用于覆盖在bean定义中指定的默认参数（如果有的话）；
+
+	args参数用于创建bean的时候显式指定参数（只在创建新的bean时才会被使用，如果是从已有之中检索出来的话，将不会使用）；
+
+	如果给了参数，但是指定的bean不是原型模式的话，会抛出 BeanDefinitionStoreException 异常；
 	 */
 	Object getBean(String name, Object... args) throws BeansException;
 
@@ -190,6 +212,14 @@ public interface BeanFactory {
 	 * @throws BeansException if the bean could not be created
 	 * @since 3.0
 	 * @see ListableBeanFactory
+	 */
+	/*
+	返回一个唯一匹配给定类型的bean实例，如果有的话；
+
+	这个方法进入ListableBeanFactory类型查找区域，但是也可以根据给定类型的名称将其转换为传统的名称查找。
+	对于跨bean集合的更广泛的检索操作，使用ListableBeanFactory和/或BeanFactoryUtils。
+
+	如果根据类型找到不止一个bean实例，那么将会抛出 NoUniqueBeanDefinitionException 异常；
 	 */
 	<T> T getBean(Class<T> requiredType) throws BeansException;
 
@@ -212,6 +242,9 @@ public interface BeanFactory {
 	 * @throws BeansException if the bean could not be created
 	 * @since 4.1
 	 */
+	/*
+	根据类型检索的同时，可以显式指定构造器或者工厂方法的参数；
+	 */
 	<T> T getBean(Class<T> requiredType, Object... args) throws BeansException;
 
 
@@ -230,6 +263,16 @@ public interface BeanFactory {
 	 * @param name the name of the bean to query
 	 * @return whether a bean with the given name is present
 	 */
+	/*
+	这个bean工厂是否包含一个bean的定义或具有给定名称的外部注册的单例实例？
+
+	如果给的名字是一个别名的话，将会被转化为标准的bean名字；
+
+	如果这个工厂是多层级的话，并且在这个工厂中找不到这个bean，那么将会去父工厂中检索；
+
+	如果一个符合这个名字的bean定义或者单例实例被检索到的话，这个方法会返回 true，不管这个bean定义是具体的还是抽象的、
+	延迟的还是饥饿的、在范围内或者不在范围内。所以要注意这个方法返回了 true，并不一定代表 getBean 方法就会检索到同一个名字的bean实例；
+	 */
 	boolean containsBean(String name);
 
 	/**
@@ -246,6 +289,12 @@ public interface BeanFactory {
 	 * @throws NoSuchBeanDefinitionException if there is no bean with the given name
 	 * @see #getBean
 	 * @see #isPrototype
+	 */
+	/*
+	这个bean是共享的单例吗？也就是说，getBean 方法总是会返回同一个实例吗？
+
+	注意：这个方法返回 false，并不能说明原型的实例也不存在，它表明这个bean不是单例的，但有可能是其他范围域的；
+	可以使用 isPrototype 方法来显式检查那些独立的实例；
 	 */
 	boolean isSingleton(String name) throws NoSuchBeanDefinitionException;
 
@@ -265,6 +314,12 @@ public interface BeanFactory {
 	 * @see #getBean
 	 * @see #isSingleton
 	 */
+	/*
+	这个bean是原型的吗？也就是说，getBean 方法每次都是返回一个独立的实例吗？
+
+	注意：这个方法返回 false，并不能说明这个bean是一个单例模式，它也有可能是其他范围域的；
+
+	 */
 	boolean isPrototype(String name) throws NoSuchBeanDefinitionException;
 
 	/**
@@ -281,6 +336,13 @@ public interface BeanFactory {
 	 * @since 4.2
 	 * @see #getBean
 	 * @see #getType
+	 */
+	/*
+	检查给定的bean是否是匹配指定的类型；
+	更准确来说，检查用 name 从 getBean 方法得到的对象，它的类型是不是与给定类型一致；
+
+	如果类型匹配的话，返回 true；
+	如果类型不匹配，或者不能够确定的话，返回false；
 	 */
 	boolean isTypeMatch(String name, ResolvableType typeToMatch) throws NoSuchBeanDefinitionException;
 
@@ -299,6 +361,13 @@ public interface BeanFactory {
 	 * @see #getBean
 	 * @see #getType
 	 */
+	/*
+	检查给定的bean是否是匹配指定的类型；
+	更准确来说，检查用 name 从 getBean 方法得到的对象，它的类型是不是与给定类型一致；
+
+	如果类型匹配的话，返回 true；
+	如果类型不匹配，或者不能够确定的话，返回false；
+	 */
 	boolean isTypeMatch(String name, @Nullable Class<?> typeToMatch) throws NoSuchBeanDefinitionException;
 
 	/**
@@ -315,6 +384,11 @@ public interface BeanFactory {
 	 * @see #getBean
 	 * @see #isTypeMatch
 	 */
+	/*
+	确定给定bean的类型；更准确来说，确定 getBean 方法返回对象的类型；
+
+	对于一个工厂Bean来说，会返回这个工厂所创建的bean的类型，就跟 FactoryBean.getObjectType 所暴露的是一样的；
+	 */
 	@Nullable
 	Class<?> getType(String name) throws NoSuchBeanDefinitionException;
 
@@ -328,6 +402,13 @@ public interface BeanFactory {
 	 * @param name the bean name to check for aliases
 	 * @return the aliases, or an empty array if none
 	 * @see #getBean
+	 */
+	/*
+	返回给定bean的别名数组，如果有的话；
+
+	当调用 getBean 方法的时候，所有的这些别名都返回同一个bean实例；
+
+	如果给定的名称是一个别名，那么标准的名称和其他别名将会被返回，并且原始的bean名称将会是返回数组中的第一个元素；
 	 */
 	String[] getAliases(String name);
 
