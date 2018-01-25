@@ -27,6 +27,9 @@ import org.springframework.lang.Nullable;
  * {@link org.springframework.beans.factory.config.ConfigurableBeanFactory}
  * are available for specific purposes.
  *
+ * 这个一个访问spring bean容器的根接口。也是容器的一个基本的客户端视图；
+ * ListableBeanFactory 和 ConfigurableBeanFactory 是更进一步的接口，用于更具体的目的；
+ *
  * <p>This interface is implemented by objects that hold a number of bean definitions,
  * each uniquely identified by a String name. Depending on the bean definition,
  * the factory will return either an independent instance of a contained object
@@ -37,17 +40,26 @@ import org.springframework.lang.Nullable;
  * 2.0, further scopes are available depending on the concrete application
  * context (e.g. "request" and "session" scopes in a web environment).
  *
+ * 实现这个接口的对象拥有许多bean的定义，每一个都用一个字符串名字唯一标识。根据bean的定义，这个工厂将会返回一个独立的实体，
+ * 或者一个共享的单例模式。返回哪种类型的实例，主要是根据bean工厂的配置：API总是一样的。
+ * 自从Spring2.0之后，根据不同的应用上下文，已经有了更多的作用域；
+ *
  * <p>The point of this approach is that the BeanFactory is a central registry
  * of application components, and centralizes configuration of application
  * components (no more do individual objects need to read properties files,
  * for example). See chapters 4 and 11 of "Expert One-on-One J2EE Design and
  * Development" for a discussion of the benefits of this approach.
  *
+ * 这个方法的重点在于，对于应用组件来捉，这个bean工厂是一个中心注册器，并且集中配置了应用组件。
+ *
  * <p>Note that it is generally better to rely on Dependency Injection
  * ("push" configuration) to configure application objects through setters
  * or constructors, rather than use any form of "pull" configuration like a
  * BeanFactory lookup. Spring's Dependency Injection functionality is
  * implemented using this BeanFactory interface and its subinterfaces.
+ *
+ * 注意，使用setter或者构造器来进行依赖注入(push模式)，通常来说是一种比较好的方式，相比较于通过pull模式来说，比方说检索bean工厂；
+ * Spring的依赖注入功能是使用 BeanFactory 和它的子类来实现的。
  *
  * <p>Normally a BeanFactory will load bean definitions stored in a configuration
  * source (such as an XML document), and use the {@code org.springframework.beans}
@@ -57,14 +69,27 @@ import org.springframework.lang.Nullable;
  * properties file, etc. Implementations are encouraged to support references
  * amongst beans (Dependency Injection).
  *
+ * 通常来说 BeanFactory 会加载配置源中的定义的bean（比如XML文件），并且使用 code org.springframework.beans 包来配置bean。
+ * 但是，它会直接返回一个Java对象的实现，如果在Java代码中需要的话。
+ * 关于如何存储这些配置是没有限制的：LDAP（轻量目录访问协议）、关系型数据库，XML文件、properties文件等，都是可以的。但是更推荐使用支持bean引用的
+ * 实现方式。
+ *
  * <p>In contrast to the methods in {@link ListableBeanFactory}, all of the
  * operations in this interface will also check parent factories if this is a
  * {@link HierarchicalBeanFactory}. If a bean is not found in this factory instance,
  * the immediate parent factory will be asked. Beans in this factory instance
  * are supposed to override beans of the same name in any parent factory.
  *
+ * 相较于 ListableBeanFactory 中的方法，这个接口中的操作将会检查它父级工厂（如果这是一个 HierarchicalBeanFactory），
+ * 如果一个bean在这个工厂实例中没找到，那么将会访问直接的父级工厂。
+ * 这个工厂实例中定义的bean将会覆盖父级工厂中相同名字的bean。
+ *
+ *
  * <p>Bean factory implementations should support the standard bean lifecycle interfaces
  * as far as possible. The full set of initialization methods and their standard order is:
+ *
+ * bean工厂的实现应该尽可能地支持标准的bean生命周期接口，这些初始化方法和它们的顺序如下：
+ *
  * <ol>
  * <li>BeanNameAware's {@code setBeanName}
  * <li>BeanClassLoaderAware's {@code setBeanClassLoader}
@@ -88,6 +113,9 @@ import org.springframework.lang.Nullable;
  * </ol>
  *
  * <p>On shutdown of a bean factory, the following lifecycle methods apply:
+ *
+ * 当关闭一个bean工厂的时候，它们的生命周期方法如下：
+ *
  * <ol>
  * <li>{@code postProcessBeforeDestruction} methods of DestructionAwareBeanPostProcessors
  * <li>DisposableBean's {@code destroy}
@@ -121,6 +149,11 @@ public interface BeanFactory {
 	 * beans <i>created</i> by the FactoryBean. For example, if the bean named
 	 * {@code myJndiObject} is a FactoryBean, getting {@code &myJndiObject}
 	 * will return the factory, not the instance returned by the factory.
+	 */
+	/*
+	用于取消工厂bean的引用，把工厂bean和它创建的bean区分开来。
+
+	比如说，如果 myJndiObject 这个bean是一个工厂bean，那么获取  &myJndiObject 将会返回这个工厂，而不是这个工厂创建的实例；
 	 */
 	String FACTORY_BEAN_PREFIX = "&";
 
