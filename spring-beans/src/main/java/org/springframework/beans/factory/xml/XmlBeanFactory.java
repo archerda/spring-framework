@@ -52,10 +52,10 @@ import org.springframework.core.io.Resource;
  */
 @Deprecated
 @SuppressWarnings({"serial", "all"})
+// XmlBeanFactory与DefaultListableBeanFactory不同的地方，就在于它使用了自定义的XML读取器 XmlBeanDefinitionReader，
+// 实现了个性化的 BeanDefinitionReader 读取；
 public class XmlBeanFactory extends DefaultListableBeanFactory {
 
-	// XmlBeanFactory与DefaultListableBeanFactory不同的地方，就在于它使用了自定义的XML读取器 XmlBeanDefinitionReader，
-	// 实现了个性化的 BeanDefinitionReader 读取；
 	private final XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this);
 
 
