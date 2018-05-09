@@ -209,7 +209,20 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 	 */
 	/*
 	加载或刷新配置的持久表示，这可能是XML文件，属性文件或关系数据库模式。
-	因为这是一个启动方法，所以它应该销毁已经创建的单例bean，如果它失败，以避免摇摆的资源。 换句话说，在调用该方法之后，全部的或者不是所有的单例都应该被实例化。
+
+	因为这是一个启动方法，所以它应该销毁已经创建的单例bean，如果它失败，以避免摇摆的资源。
+	换句话说，在调用该方法之后，全部的或者不是所有的单例都应该被实例化。
+	*/
+	/*
+	IoC容器的初始化动作基本是由这个方法来启动的，这个方法标志着IoC容器的正式启动。
+	具体来说，这个启动包括BeanDefinition的Resource定位、载入和注册这三个基本过程。
+
+	这个方法标志着IOC容器的正式启动。
+	 */
+	/*
+	Spring IoC容器对Bean定义资源的载入是从refresh()函数开始的，refresh()是一个模板方法，refresh()方法的作用是：
+	在创建IoC容器前，如果已经有容器存在，则需要把已有的容器销毁和关闭，以保证在refresh之后使用的是新建立起来的IoC容器。
+	refresh的作用类似于对IoC容器的重启，在新建立好的容器中对容器进行初始化，对Bean定义资源进行载入
 	 */
 	void refresh() throws BeansException, IllegalStateException;
 

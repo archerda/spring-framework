@@ -33,12 +33,18 @@ public interface AliasRegistry {
 	 * @throws IllegalStateException if the alias is already in use
 	 * and may not be overridden
 	 */
+	/*
+	给定一个bean的规范名称，为它指定另一个别称。
+	 */
 	void registerAlias(String name, String alias);
 
 	/**
 	 * Remove the specified alias from this registry.
 	 * @param alias the alias to remove
 	 * @throws IllegalStateException if no such alias was found
+	 */
+	/*
+	在注册器中，删除这个指定的别称。
 	 */
 	void removeAlias(String alias);
 
@@ -48,12 +54,18 @@ public interface AliasRegistry {
 	 * @param name the name to check
 	 * @return whether the given name is an alias
 	 */
+	/*
+	判断一个名称是否被定义为了别称（与实际注册组件的名称相反）。
+	 */
 	boolean isAlias(String name);
 
 	/**
 	 * Return the aliases for the given name, if defined.
 	 * @param name the name to check for aliases
 	 * @return the aliases, or an empty array if none
+	 */
+	/*
+	获取规范名称的所有别称；
 	 */
 	String[] getAliases(String name);
 

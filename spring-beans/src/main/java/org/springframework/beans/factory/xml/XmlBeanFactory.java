@@ -50,6 +50,21 @@ import org.springframework.core.io.Resource;
  * @deprecated as of Spring 3.1 in favor of {@link DefaultListableBeanFactory} and
  * {@link XmlBeanDefinitionReader}
  */
+
+/*
+ * 从XML文档中读取bean定义的DefaultListableBeanFactory的便捷扩展。
+ * 委托下面的XmlBeanDefinitionReader; 实际上等效于使用带有DefaultListableBeanFactory的XmlBeanDefinitionReader。
+ *
+ * 所需XML文档的结构，元素和属性名称在此类中进行了硬编码。 （当然，如果需要生成这种格式，可以运行转换）。
+ * “beans”不需要是XML文档的根元素：该类将解析XML文件中的所有bean定义元素。
+ *
+ * 该类使用DefaultListableBeanFactory超类来注册每个bean定义，并依赖后者的BeanFactory接口实现。
+ * 它支持单例，原型和对这两种bean的引用。
+ * 有关选项和配置样式的详细信息，请参阅“spring-beans-3.x.xsd”（或历史上的“spring-beans-2.0.dtd”）。
+ *
+ * 对于高级需求，考虑使用带有XmlBeanDefinitionReader的DefaultListableBeanFactory。
+ * 后者允许从多个XML资源读取，并且在其实际的XML解析行为中是高度可配置的。
+ */
 @Deprecated
 @SuppressWarnings({"serial", "all"})
 // XmlBeanFactory与DefaultListableBeanFactory不同的地方，就在于它使用了自定义的XML读取器 XmlBeanDefinitionReader，
@@ -65,6 +80,11 @@ public class XmlBeanFactory extends DefaultListableBeanFactory {
 	 * @param resource XML resource to load bean definitions from
 	 * @throws BeansException in case of loading or parsing errors
 	 */
+	/*
+	 * 根据所给的resource创建一个新的 XML bean工厂, 这个resource必须是可以用DOM技术来解析的.
+	 * @param resource 资源文件
+	 * @throws BeansException 在载入或者解析资源发生错误的时候抛出
+	 */
 	public XmlBeanFactory(Resource resource) throws BeansException {
 		this(resource, null);
 	}
@@ -76,11 +96,19 @@ public class XmlBeanFactory extends DefaultListableBeanFactory {
 	 * @param parentBeanFactory parent bean factory
 	 * @throws BeansException in case of loading or parsing errors
 	 */
+	/*
+	 * 根据所给的resource创建一个新的 XML bean工厂, 这个resource必须是可以用DOM技术来解析的.
+	 * @param resource 资源文件
+	 * @param parentBeanFactory 父的bean工厂
+	 * @throws BeansException 在载入或者解析资源发生错误的时候抛出
+	 */
 	public XmlBeanFactory(Resource resource, BeanFactory parentBeanFactory) throws BeansException {
 		// parentBeanFactory为父类BeanFactory，用于factory合并，可以为空；
 		super(parentBeanFactory);
 
 		// 这行代码是整个资源加载的切入点；
+		// reader执行载入BeanDefinition的方法,最后会完成Bean的载入和注册;
+		// 完成后Bean就成功的放置到了IOC容器中,以后我们就可以从IOC容器中获取Bean来使用;
 		this.reader.loadBeanDefinitions(resource);
 	}
 
