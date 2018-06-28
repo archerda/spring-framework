@@ -117,6 +117,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	private final Map<Class<?>, Object> resolvableDependencies = new ConcurrentHashMap<>(16);
 
 	/** Map of bean definition objects, keyed by bean name */
+	//存储注册的BeanDefinition
 	private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
 
 	/** Map of singleton and non-singleton bean names, keyed by dependency type */
@@ -126,9 +127,11 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	private final Map<Class<?>, String[]> singletonBeanNamesByType = new ConcurrentHashMap<>(64);
 
 	/** List of bean definition names, in registration order */
+	//存储注册过的Bean的名称；
 	private volatile List<String> beanDefinitionNames = new ArrayList<>(256);
 
 	/** List of names of manually registered singletons, in registration order */
+	// 存储手动注册的单例Bean的名称；
 	private volatile Set<String> manualSingletonNames = new LinkedHashSet<>(16);
 
 	/** Cached array of bean definition names in case of frozen configuration */
@@ -697,8 +700,10 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		// Trigger initialization of all non-lazy singleton beans...
 		for (String beanName : beanNames) {
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
+			// 只实例化 非抽象的 && 单例的 && 非懒加载的；
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
 				if (isFactoryBean(beanName)) {
+					// 如果是工厂bean，则先实例化工厂bean；
 					final FactoryBean<?> factory = (FactoryBean<?>) getBean(FACTORY_BEAN_PREFIX + beanName);
 					boolean isEagerInit;
 					if (System.getSecurityManager() != null && factory instanceof SmartFactoryBean) {
@@ -710,11 +715,16 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 						isEagerInit = (factory instanceof SmartFactoryBean &&
 								((SmartFactoryBean<?>) factory).isEagerInit());
 					}
+					// 如果工厂bean是SmartFactoryBean并且eagerInit=true，才会实例化具体的bean；
+					// 否则只实例化工厂bean，不实例化具体bean；
+					// TODO by archerda on 2018/6/13: eagerInit什么时候为true？如何配置？
 					if (isEagerInit) {
+						// 获取具体bean，开始实例化；
 						getBean(beanName);
 					}
 				}
 				else {
+					// 获取具体bean，开始实例化；
 					getBean(beanName);
 				}
 			}
@@ -743,6 +753,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	// Implementation of BeanDefinitionRegistry interface
 	//---------------------------------------------------------------------
 
+	//向IoC容器注册解析的BeanDefinition
 	@Override
 	public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition)
 			throws BeanDefinitionStoreException {
@@ -750,6 +761,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		Assert.hasText(beanName, "Bean name must not be empty");
 		Assert.notNull(beanDefinition, "BeanDefinition must not be null");
 
+		//校验解析的BeanDefinition
 		if (beanDefinition instanceof AbstractBeanDefinition) {
 			try {
 				((AbstractBeanDefinition) beanDefinition).validate();
@@ -763,12 +775,18 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		BeanDefinition oldBeanDefinition;
 
 		oldBeanDefinition = this.beanDefinitionMap.get(beanName);
+
+		//检查是否有同名的BeanDefinition已经在IoC容器中注册，如果已经注册，
 		if (oldBeanDefinition != null) {
+
+			//如果不允许覆盖已注册的Bean，则抛出注册失败异常
 			if (!isAllowBeanDefinitionOverriding()) {
 				throw new BeanDefinitionStoreException(beanDefinition.getResourceDescription(), beanName,
 						"Cannot register bean definition [" + beanDefinition + "] for bean '" + beanName +
 						"': There is already [" + oldBeanDefinition + "] bound.");
 			}
+			// 检查已经存在的Bean是否是Spring框架生成的Bean；
+			// 如果是的话，则打印一个警告；
 			else if (oldBeanDefinition.getRole() < beanDefinition.getRole()) {
 				// e.g. was ROLE_APPLICATION, now overriding with ROLE_SUPPORT or ROLE_INFRASTRUCTURE
 				if (this.logger.isWarnEnabled()) {
@@ -777,6 +795,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							oldBeanDefinition + "] with [" + beanDefinition + "]");
 				}
 			}
+			// 如果已经存在的BeanDefinition和新的BeanDefinition不相等，则打印一个info日志，表明重载了；
 			else if (!beanDefinition.equals(oldBeanDefinition)) {
 				if (this.logger.isInfoEnabled()) {
 					this.logger.info("Overriding bean definition for bean '" + beanName +
@@ -784,6 +803,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							"] with [" + beanDefinition + "]");
 				}
 			}
+
+			// 如果已经存在的BeanDefinition和新的BeanDefinition相等，后注册的覆盖先注册的；
 			else {
 				if (this.logger.isDebugEnabled()) {
 					this.logger.debug("Overriding bean definition for bean '" + beanName +
@@ -794,8 +815,13 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			this.beanDefinitionMap.put(beanName, beanDefinition);
 		}
 		else {
+			//IoC容器中没有已经注册同名的Bean，按正常注册流程注册
+
 			if (hasBeanCreationStarted()) {
+				// Bean的初始化创建阶段已经进行过了；
+
 				// Cannot modify startup-time collection elements anymore (for stable iteration)
+				//注册的过程中需要线程同步，以保证数据的一致性
 				synchronized (this.beanDefinitionMap) {
 					this.beanDefinitionMap.put(beanName, beanDefinition);
 					List<String> updatedDefinitions = new ArrayList<>(this.beanDefinitionNames.size() + 1);
@@ -811,6 +837,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 			else {
 				// Still in startup registration phase
+				// 还在初始化的注册阶段；
 				this.beanDefinitionMap.put(beanName, beanDefinition);
 				this.beanDefinitionNames.add(beanName);
 				this.manualSingletonNames.remove(beanName);
@@ -819,8 +846,16 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		}
 
 		if (oldBeanDefinition != null || containsSingleton(beanName)) {
+			//重置所有已经注册过的BeanDefinition的缓存
 			resetBeanDefinition(beanName);
 		}
+
+		/*
+		至此，Bean定义资源文件中配置的Bean被解析过后，已经注册到IoC容器中，被容器管理起来，真正完成了IoC容器初始化所做的全部工作。
+		现在IoC容器中已经建立了整个Bean的配置信息，这些BeanDefinition信息已经可以使用，并且可以被检索，
+		IoC容器的作用就是对这些注册的Bean定义信息进行处理和维护。
+		这些的注册的Bean定义信息是IoC容器控制反转的基础，正是有了这些注册的数据，容器才可以进行依赖注入。
+		 */
 	}
 
 	@Override

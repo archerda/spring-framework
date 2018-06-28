@@ -158,6 +158,10 @@ public interface ConfigurableListableBeanFactory
 	 * Call {@link #destroySingletons()} for full cleanup in this case.
 	 * @see #destroySingletons()
 	 */
+	/**
+	 * 确保所有的非懒加载的单例类都被初始化，包括 FactoryBean；
+	 * 一般来说，在工厂初始化的最后才调用；
+	 */
 	void preInstantiateSingletons() throws BeansException;
 
 }

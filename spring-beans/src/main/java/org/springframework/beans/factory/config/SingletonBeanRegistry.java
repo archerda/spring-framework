@@ -71,6 +71,15 @@ public interface SingletonBeanRegistry {
 	 * @return the registered singleton object, or {@code null} if none found
 	 * @see ConfigurableListableBeanFactory#getBeanDefinition
 	 */
+	/*
+	 * 返回以给定名称注册的（原始）单例对象。
+	 * 只有检查已经实例化的单例对象; 不会为尚未实例化的单例bean定义返回一个Object。
+	 *
+	 * 此方法的主要目的是访问手动注册的单例（请参阅registerSingleton（java.lang.String，java.lang.Object））。
+	 * 也可用于以原始方式访问由已创建的bean定义定义的单例。
+	 *
+	 * 注：此查找方法不解析FactoryBean前缀或别名。 在获取单例实例之前，您需要首先解析规范bean名称。
+	 */
 	@Nullable
 	Object getSingleton(String beanName);
 

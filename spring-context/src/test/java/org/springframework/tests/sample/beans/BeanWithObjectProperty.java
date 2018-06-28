@@ -16,12 +16,15 @@
 
 package org.springframework.tests.sample.beans;
 
+import javax.annotation.Resource;
+
 /**
  * @author Juergen Hoeller
  * @since 17.08.2004
  */
 public class BeanWithObjectProperty {
 
+	@Resource
 	private Object object;
 
 	public Object getObject() {

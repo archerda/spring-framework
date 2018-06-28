@@ -99,6 +99,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	private final Map<String, Set<String>> containedBeanMap = new ConcurrentHashMap<>(16);
 
 	/** Map between dependent bean names: bean name --> Set of dependent bean names */
+	// key为beanName，value为依赖这个bean的所有bean；
 	private final Map<String, Set<String>> dependentBeanMap = new ConcurrentHashMap<>(64);
 
 	/** Map between depending bean names: bean name --> Set of bean names for the bean's dependencies */
@@ -194,6 +195,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * with, if necessary
 	 * @return the registered singleton object
 	 */
+	// 返回以给定名称注册的（原始）单例对象，如果没有注册，则创建并注册一个新对象。
 	public Object getSingleton(String beanName, ObjectFactory<?> singletonFactory) {
 		Assert.notNull(beanName, "Bean name must not be null");
 		synchronized (this.singletonObjects) {
@@ -431,6 +433,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * @param dependentBeanName the name of the dependent bean
 	 * @since 4.0
 	 */
+	// 判断 beanName 是否被 dependentBeanName 依赖；
 	protected boolean isDependent(String beanName, String dependentBeanName) {
 		return isDependent(beanName, dependentBeanName, null);
 	}

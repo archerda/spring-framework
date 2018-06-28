@@ -1,8 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd"
+	   profile="testProfile">
 
-	<bean id="testBean" class="java.lang.Object"/>
+	<context:annotation-config/>
+	<context:component-scan base-package="org.springframework.tests.sample.beans"/>
+
+	<bean id="beanWithObjectPropertyA" class="org.springframework.tests.sample.beans.BeanWithObjectProperty">
+		<!--<property name="object">-->
+			<!--<list>-->
+				<!--<ref bean="environment"/>-->
+				<!--<bean class="com.apple.concurrent.Dispatch"/>-->
+				<!--<value>test</value>-->
+			<!--</list>-->
+		<!--</property>-->
+	</bean>
+
+
+	<!--<bean id="beanWithObjectPropertyA" class="org.springframework.tests.sample.beans.BeanWithObjectProperty" depends-on="beanWithObjectPropertyB">-->
+		<!--&lt;!&ndash;<property name="object">&ndash;&gt;-->
+		<!--&lt;!&ndash;<list>&ndash;&gt;-->
+		<!--&lt;!&ndash;<ref bean="environment"/>&ndash;&gt;-->
+		<!--&lt;!&ndash;<bean class="com.apple.concurrent.Dispatch"/>&ndash;&gt;-->
+		<!--&lt;!&ndash;<value>test</value>&ndash;&gt;-->
+		<!--&lt;!&ndash;</list>&ndash;&gt;-->
+		<!--&lt;!&ndash;</property>&ndash;&gt;-->
+	<!--</bean>-->
+	<!--<bean id="beanWithObjectPropertyB" class="org.springframework.tests.sample.beans.BeanWithObjectProperty" depends-on="beanWithObjectPropertyA">-->
+		<!--&lt;!&ndash;<property name="object">&ndash;&gt;-->
+		<!--&lt;!&ndash;<list>&ndash;&gt;-->
+		<!--&lt;!&ndash;<ref bean="environment"/>&ndash;&gt;-->
+		<!--&lt;!&ndash;<bean class="com.apple.concurrent.Dispatch"/>&ndash;&gt;-->
+		<!--&lt;!&ndash;<value>test</value>&ndash;&gt;-->
+		<!--&lt;!&ndash;</list>&ndash;&gt;-->
+		<!--&lt;!&ndash;</property>&ndash;&gt;-->
+
+	<!--</bean>-->
 
 </beans>

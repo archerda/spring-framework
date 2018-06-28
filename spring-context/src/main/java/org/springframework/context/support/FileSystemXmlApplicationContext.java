@@ -186,6 +186,7 @@ public class FileSystemXmlApplicationContext extends AbstractXmlApplicationConte
 
 		if (refresh) {
 			// 这个refresh方法启动了对BeanDefinition的载入过程。
+			// Important by archerda on 2018/5/24: IoC容器初始化的入口在容器实现中的refresh()调用来完成
 			refresh();
 		}
 	}

@@ -98,7 +98,24 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 		// then proceed with actually loading the bean definitions.
 		// 当Bean读取器读取Bean定义的Xml资源文件时，启用Xml的校验机制
 		initBeanDefinitionReader(beanDefinitionReader);
+
 		// Bean读取器真正实现加载的方法
+		// Important by archerda on 2018/5/24: bean 定义载入 IOC 容器使用的方法
+		/*
+		大致过程如下：
+		通过 ResourceLoader 来完成资源文件位置的定位，DefaultResourceLoader 是默认的实现，
+		同时上下文本身就给出了 ResourceLoader 的实现，可以从类路径，文件系统, URL 等方式来定为资源位置。
+		如果是 XmlBeanFactory作为 IOC 容器，那么需要为它指定 bean 定义的资源，
+		也就是说 bean 定义文件时通过抽象成 Resource 来被 IOC 容器处理的，
+		容器通过 BeanDefinitionReader来完成定义信息的解析和 Bean 信息的注册,
+		往往使用的是XmlBeanDefinitionReader 来解析 bean 的 xml 定义文件 - 实际的处理过程是委托给
+		BeanDefinitionParserDelegate 来完成的，从而得到 bean 的定义信息，
+		这些信息在 Spring 中使用 BeanDefinition 对象来表示 - 这个名字可以让我们想到loadBeanDefinition,RegisterBeanDefinition
+		这些相关的方法 - 他们都是为处理 BeanDefinition 服务的， 容器解析得到 BeanDefinition 以后，
+		需要把它在 IOC 容器中注册，这由 IOC 实现 BeanDefinitionRegistry 接口来实现。
+		注册过程就是在 IOC 容器内部维护的一个HashMap 来保存得到的 BeanDefinition 的过程。
+		这个 HashMap 是 IoC 容器持有 bean 信息的场所，以后对 bean 的操作都是围绕这个HashMap 来实现的.
+		 */
 		loadBeanDefinitions(beanDefinitionReader);
 	}
 
