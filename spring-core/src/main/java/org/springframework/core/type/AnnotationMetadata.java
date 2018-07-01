@@ -47,6 +47,7 @@ public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata
 	 * type to look for
 	 * @return the meta-annotation type names, or an empty set if none found
 	 */
+	// 获取基础类上给定注释类型上存在的所有元注记类型的完全限定类名。
 	Set<String> getMetaAnnotationTypes(String annotationName);
 
 	/**

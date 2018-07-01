@@ -28,6 +28,7 @@ import org.springframework.context.annotation.ComponentScanBeanDefinitionParser;
  * @author Juergen Hoeller
  * @since 2.5
  */
+// Context命名空间的处理器；
 public class ContextNamespaceHandler extends NamespaceHandlerSupport {
 
 	@Override

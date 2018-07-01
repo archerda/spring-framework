@@ -16,14 +16,6 @@
 
 package org.springframework.context.annotation;
 
-import java.lang.annotation.Annotation;
-import java.util.Set;
-import java.util.regex.Pattern;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -35,15 +27,18 @@ import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.beans.factory.xml.XmlReaderContext;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.core.type.filter.AspectJTypeFilter;
-import org.springframework.core.type.filter.AssignableTypeFilter;
-import org.springframework.core.type.filter.RegexPatternTypeFilter;
-import org.springframework.core.type.filter.TypeFilter;
+import org.springframework.core.type.filter.*;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import java.lang.annotation.Annotation;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Parser for the {@code <context:component-scan/>} element.
@@ -53,6 +48,7 @@ import org.springframework.util.StringUtils;
  * @author Juergen Hoeller
  * @since 2.5
  */
+// <context:component-scan>标签解析；
 public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 
 	private static final String BASE_PACKAGE_ATTRIBUTE = "base-package";
@@ -81,14 +77,25 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 	@Override
 	@Nullable
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
+		// 获取扫描包的基础路径；
 		String basePackage = element.getAttribute(BASE_PACKAGE_ATTRIBUTE);
+
+		// 解析路径中的占位符；
 		basePackage = parserContext.getReaderContext().getEnvironment().resolvePlaceholders(basePackage);
+
+		// 基础路径可能是多个，分割为数组；
 		String[] basePackages = StringUtils.tokenizeToStringArray(basePackage,
 				ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS);
 
 		// Actually scan for bean definitions and register them.
+
+		// 配置Scanner扫描器；
 		ClassPathBeanDefinitionScanner scanner = configureScanner(parserContext, element);
+
+		// 开始扫描包路径下的需要注册的bean，得到 BeanDefinitionHolder；
 		Set<BeanDefinitionHolder> beanDefinitions = scanner.doScan(basePackages);
+
+		// 把得到的 BeanDefinitionHolder 注册到容器中；
 		registerComponents(parserContext.getReaderContext(), beanDefinitions, element);
 
 		return null;
@@ -136,6 +143,7 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 	protected void registerComponents(
 			XmlReaderContext readerContext, Set<BeanDefinitionHolder> beanDefinitions, Element element) {
 
+		// 为给定的源对象调用源提取器。
 		Object source = readerContext.extractSource(element);
 		CompositeComponentDefinition compositeDef = new CompositeComponentDefinition(element.getTagName(), source);
 
@@ -144,11 +152,15 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 		}
 
 		// Register annotation config processors, if necessary.
+		// 如有必要，注册注释配置处理器。
 		boolean annotationConfig = true;
 		if (element.hasAttribute(ANNOTATION_CONFIG_ATTRIBUTE)) {
+			// 获取 annotation-config 属性；
 			annotationConfig = Boolean.valueOf(element.getAttribute(ANNOTATION_CONFIG_ATTRIBUTE));
 		}
+		// annotation-config 属性是true；
 		if (annotationConfig) {
+			// 给容器中注入后置处理器；
 			Set<BeanDefinitionHolder> processorDefinitions =
 					AnnotationConfigUtils.registerAnnotationConfigProcessors(readerContext.getRegistry(), source);
 			for (BeanDefinitionHolder processorDefinition : processorDefinitions) {
@@ -156,6 +168,7 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 			}
 		}
 
+		// 激发组件注册的事件;
 		readerContext.fireComponentRegistered(compositeDef);
 	}
 

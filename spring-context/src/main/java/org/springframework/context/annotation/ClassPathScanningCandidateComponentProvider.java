@@ -16,17 +16,8 @@
 
 package org.springframework.context.annotation;
 
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
@@ -53,13 +44,13 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.core.type.filter.TypeFilter;
 import org.springframework.lang.Nullable;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Indexed;
-import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.*;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.*;
 
 /**
  * A component provider that provides candidate components from a base package. Can
@@ -308,11 +299,13 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @param basePackage the package to check for annotated classes
 	 * @return a corresponding Set of autodetected bean definitions
 	 */
+	// 扫面类路径下的候选组件；
 	public Set<BeanDefinition> findCandidateComponents(String basePackage) {
 		if (this.componentsIndex != null && indexSupportsIncludeFilters()) {
 			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
 		}
 		else {
+			// 开始扫描候选组件；
 			return scanCandidateComponents(basePackage);
 		}
 	}
@@ -414,28 +407,40 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	}
 
 	private Set<BeanDefinition> scanCandidateComponents(String basePackage) {
+		// 保存所有候选组件的 BeanDefinition；
 		Set<BeanDefinition> candidates = new LinkedHashSet<>();
 		try {
+			// 拼装包搜索路径；
 			String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
 					resolveBasePackage(basePackage) + '/' + this.resourcePattern;
+			// 获取包搜索路径下的所有class文件资源；
 			Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath);
 			boolean traceEnabled = logger.isTraceEnabled();
 			boolean debugEnabled = logger.isDebugEnabled();
+
+			// 遍历所有资源；
 			for (Resource resource : resources) {
 				if (traceEnabled) {
 					logger.trace("Scanning " + resource);
 				}
+
+				// 如果class资源是可读的；
 				if (resource.isReadable()) {
 					try {
+						// 获取class资源的元数据阅读器；
 						MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource);
+
+						// 如果class资源是组件候选者；
 						if (isCandidateComponent(metadataReader)) {
 							ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 							sbd.setResource(resource);
 							sbd.setSource(resource);
+							// 如果class是可以成为组件候选者的（不是接口并且可以被实例化，或者是抽象的但有Lookup）；
 							if (isCandidateComponent(sbd)) {
 								if (debugEnabled) {
 									logger.debug("Identified candidate component class: " + resource);
 								}
+								// 添加到候选者集合里面；
 								candidates.add(sbd);
 							}
 							else {
@@ -455,6 +460,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 								"Failed to read candidate component class: " + resource, ex);
 					}
 				}
+				// 如果资源不可读，那么记录错误信息；
 				else {
 					if (traceEnabled) {
 						logger.trace("Ignored because not readable: " + resource);
@@ -487,12 +493,20 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @param metadataReader the ASM ClassReader for the class
 	 * @return whether the class qualifies as a candidate component
 	 */
+	// 根据class资源的元数据阅读器，判断一个类是否是组件候选者；
 	protected boolean isCandidateComponent(MetadataReader metadataReader) throws IOException {
+		// 如果匹配到 黑名单，那么不是候选者；
 		for (TypeFilter tf : this.excludeFilters) {
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
 				return false;
 			}
 		}
+
+		// 如果匹配到 白名单，那么是候选者；
+		// 默认有3个包含过滤器，分别是:
+		// interface org.springframework.stereotype.Component;( @Service/@Repository/@Controller实际上都是@Component的子注解)；
+		// interface javax.annotation.ManagedBean;
+		// interface javax.inject.Named;
 		for (TypeFilter tf : this.includeFilters) {
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
 				return isConditionMatch(metadataReader);
@@ -523,6 +537,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @param beanDefinition the bean definition to check
 	 * @return whether the bean definition qualifies as a candidate component
 	 */
+	// 判断类不是一个接口，并且可以被实例化的；
 	protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
 		AnnotationMetadata metadata = beanDefinition.getMetadata();
 		return (metadata.isIndependent() && (metadata.isConcrete() ||

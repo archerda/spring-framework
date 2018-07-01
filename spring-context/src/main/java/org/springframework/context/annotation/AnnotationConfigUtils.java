@@ -143,15 +143,18 @@ public class AnnotationConfigUtils {
 	 * @return a Set of BeanDefinitionHolders, containing all bean definitions
 	 * that have actually been registered by this call
 	 */
+	// 在给定的注册器中注册所有相关的注解后处理器。
 	public static Set<BeanDefinitionHolder> registerAnnotationConfigProcessors(
 			BeanDefinitionRegistry registry, @Nullable Object source) {
 
 		DefaultListableBeanFactory beanFactory = unwrapDefaultListableBeanFactory(registry);
 		if (beanFactory != null) {
 			if (!(beanFactory.getDependencyComparator() instanceof AnnotationAwareOrderComparator)) {
+				// 设置依赖比较器；
 				beanFactory.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE);
 			}
 			if (!(beanFactory.getAutowireCandidateResolver() instanceof ContextAnnotationAutowireCandidateResolver)) {
+				// 设置自动注入候选者解析器；
 				beanFactory.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver());
 			}
 		}
@@ -161,18 +164,23 @@ public class AnnotationConfigUtils {
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
 			def.setSource(source);
+			// 注册 internalConfigurationAnnotationProcessor 处理器；
+			// 注意，这些处理器在容易中也是一个 BeanDefinition，但是它的role=org.springframework.beans.factory.config.BeanDefinition.ROLE_INFRASTRUCTURE，
+			// 以此跟普通的Bean区分开来；
 			beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
 		if (!registry.containsBeanDefinition(AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(AutowiredAnnotationBeanPostProcessor.class);
 			def.setSource(source);
+			// 注册 internalAutowiredAnnotationProcessor 处理器；
 			beanDefs.add(registerPostProcessor(registry, def, AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
 		if (!registry.containsBeanDefinition(REQUIRED_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(RequiredAnnotationBeanPostProcessor.class);
 			def.setSource(source);
+			// 注册 internalRequiredAnnotationProcessor 处理器；
 			beanDefs.add(registerPostProcessor(registry, def, REQUIRED_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
@@ -180,6 +188,7 @@ public class AnnotationConfigUtils {
 		if (jsr250Present && !registry.containsBeanDefinition(COMMON_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(CommonAnnotationBeanPostProcessor.class);
 			def.setSource(source);
+			// 注册 internalCommonAnnotationProcessor 处理器；
 			beanDefs.add(registerPostProcessor(registry, def, COMMON_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
@@ -195,17 +204,20 @@ public class AnnotationConfigUtils {
 						"Cannot load optional framework class: " + PERSISTENCE_ANNOTATION_PROCESSOR_CLASS_NAME, ex);
 			}
 			def.setSource(source);
+			// 注册 internalPersistenceAnnotationProcessor 处理器；
 			beanDefs.add(registerPostProcessor(registry, def, PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
 		if (!registry.containsBeanDefinition(EVENT_LISTENER_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(EventListenerMethodProcessor.class);
 			def.setSource(source);
+			// 注册 internalEventListenerProcessor 处理器；
 			beanDefs.add(registerPostProcessor(registry, def, EVENT_LISTENER_PROCESSOR_BEAN_NAME));
 		}
 		if (!registry.containsBeanDefinition(EVENT_LISTENER_FACTORY_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(DefaultEventListenerFactory.class);
 			def.setSource(source);
+			// 注册 internalEventListenerFactory 处理器；
 			beanDefs.add(registerPostProcessor(registry, def, EVENT_LISTENER_FACTORY_BEAN_NAME));
 		}
 
@@ -238,8 +250,10 @@ public class AnnotationConfigUtils {
 	}
 
 	static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd, AnnotatedTypeMetadata metadata) {
+		// 处理@Lazy注解；
 		AnnotationAttributes lazy = attributesFor(metadata, Lazy.class);
 		if (lazy != null) {
+			// 根据@Lazy的value，设置bean的懒加载模式；
 			abd.setLazyInit(lazy.getBoolean("value"));
 		}
 		else if (abd.getMetadata() != metadata) {
@@ -249,9 +263,12 @@ public class AnnotationConfigUtils {
 			}
 		}
 
+		// 处理@Primary注解
 		if (metadata.isAnnotated(Primary.class.getName())) {
 			abd.setPrimary(true);
 		}
+
+		// 处理@DependsOn注解；
 		AnnotationAttributes dependsOn = attributesFor(metadata, DependsOn.class);
 		if (dependsOn != null) {
 			abd.setDependsOn(dependsOn.getStringArray("value"));
@@ -259,10 +276,12 @@ public class AnnotationConfigUtils {
 
 		if (abd instanceof AbstractBeanDefinition) {
 			AbstractBeanDefinition absBd = (AbstractBeanDefinition) abd;
+			// 处理@Role注解；
 			AnnotationAttributes role = attributesFor(metadata, Role.class);
 			if (role != null) {
 				absBd.setRole(role.getNumber("value").intValue());
 			}
+			// 处理@Description注解；
 			AnnotationAttributes description = attributesFor(metadata, Description.class);
 			if (description != null) {
 				absBd.setDescription(description.getString("value"));
@@ -270,6 +289,7 @@ public class AnnotationConfigUtils {
 		}
 	}
 
+	// 应用范围代理模式；
 	static BeanDefinitionHolder applyScopedProxyMode(
 			ScopeMetadata metadata, BeanDefinitionHolder definition, BeanDefinitionRegistry registry) {
 

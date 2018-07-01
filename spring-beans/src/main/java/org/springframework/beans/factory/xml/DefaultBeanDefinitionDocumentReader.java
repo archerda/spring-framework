@@ -204,7 +204,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 				// 获得Document节点是XML元素节点
 				if (node instanceof Element) {
 					Element ele = (Element) node;
-					// Bean定义的Document的元素节点使用的是Spring默认的XML命名空间
+					// Bean定义的Document的元素节点使用的是Spring默认的XML命名空间（也就是Beans命名空间的）
 					if (delegate.isDefaultNamespace(ele)) {
 						// 解析默认命名空间；
 						// 使用Spring的Bean规则解析元素节点
@@ -213,6 +213,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 					else {
 						// 解析自定义命名空间；
 						//Document的根节点没有使用Spring默认的命名空间，则使用用户自定义的解析规则解析Document根节点
+						// 比如 context命名空间（component-scan标签）；
 						delegate.parseCustomElement(ele);
 					}
 				}
@@ -221,6 +222,8 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		else {
 			// 解析自定义命名空间；
 			// Document的根节点没有使用Spring默认的命名空间，则使用用户自定义的解析规则解析Document根节点
+			// 处理以下标签：<context:component-scan>、
+			// TODO by archerda on 2018/6/29: Here
 			delegate.parseCustomElement(root);
 		}
 	}

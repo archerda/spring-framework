@@ -203,6 +203,7 @@ public class ReaderContext {
 	 * @see #getSourceExtractor()
 	 * @see SourceExtractor#extractSource
 	 */
+	// 为给定的源对象调用源提取器。
 	@Nullable
 	public Object extractSource(Object sourceCandidate) {
 		return this.sourceExtractor.extractSource(sourceCandidate, this.resource);

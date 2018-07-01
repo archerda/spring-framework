@@ -16,10 +16,6 @@
 
 package org.springframework.context.annotation;
 
-import java.beans.Introspector;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -30,6 +26,10 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+
+import java.beans.Introspector;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * {@link org.springframework.beans.factory.support.BeanNameGenerator}
@@ -66,9 +66,12 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	private static final String COMPONENT_ANNOTATION_CLASSNAME = "org.springframework.stereotype.Component";
 
 
+	// 生成beanName；
 	@Override
 	public String generateBeanName(BeanDefinition definition, BeanDefinitionRegistry registry) {
+		// 如果是注解类型的；
 		if (definition instanceof AnnotatedBeanDefinition) {
+			// 根据注解类型生成beanName；
 			String beanName = determineBeanNameFromAnnotation((AnnotatedBeanDefinition) definition);
 			if (StringUtils.hasText(beanName)) {
 				// Explicit bean name found.
@@ -76,6 +79,7 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 			}
 		}
 		// Fallback: generate a unique default bean name.
+		// 没有根据注解生成beanName，那么生成一个唯一的默认beanName；
 		return buildDefaultBeanName(definition, registry);
 	}
 
@@ -84,19 +88,28 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	 * @param annotatedDef the annotation-aware bean definition
 	 * @return the bean name, or {@code null} if none is found
 	 */
+	// 根据注解类型获取BeanName；
 	@Nullable
 	protected String determineBeanNameFromAnnotation(AnnotatedBeanDefinition annotatedDef) {
+		// 获取注解元数据，实际上是 AnnotationMetadataReadingVisitor；
 		AnnotationMetadata amd = annotatedDef.getMetadata();
+		// 获取注解类型，比如"org.springframework.stereotype.Service"
 		Set<String> types = amd.getAnnotationTypes();
 		String beanName = null;
+		// 遍历注解；
 		for (String type : types) {
+			// 获取注解的所有属性；
 			AnnotationAttributes attributes = AnnotationConfigUtils.attributesFor(amd, type);
+
 			if (attributes != null && isStereotypeWithNameValue(type, amd.getMetaAnnotationTypes(type), attributes)) {
+				// 获取 value 值；
 				Object value = attributes.get("value");
 				if (value instanceof String) {
 					String strVal = (String) value;
+					// 如果value值不为空，那么就返回其作为beanName；
 					if (StringUtils.hasLength(strVal)) {
 						if (beanName != null && !strVal.equals(beanName)) {
+							// 如果同时有多个value值，那么抛出异常；
 							throw new IllegalStateException("Stereotype annotations suggest inconsistent " +
 									"component names: '" + beanName + "' versus '" + strVal + "'");
 						}
@@ -116,6 +129,8 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	 * @param attributes the map of attributes for the given annotation
 	 * @return whether the annotation qualifies as a stereotype with component name
 	 */
+	// 检查给定的注解是否有 value 属性；
+	// 检查给定的注解是否是允许通过其注解的 value() 建议组件名称的构造型;
 	protected boolean isStereotypeWithNameValue(String annotationType,
 			Set<String> metaAnnotationTypes, @Nullable Map<String, Object> attributes) {
 
@@ -134,6 +149,7 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	 * @param registry the registry that the given bean definition is being registered with
 	 * @return the default bean name (never {@code null})
 	 */
+	// 构建一个默认的Bean名称；
 	protected String buildDefaultBeanName(BeanDefinition definition, BeanDefinitionRegistry registry) {
 		return buildDefaultBeanName(definition);
 	}
@@ -149,9 +165,12 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	 * @return the default bean name (never {@code null})
 	 */
 	protected String buildDefaultBeanName(BeanDefinition definition) {
+		// 获取类的全限定名称；
 		String beanClassName = definition.getBeanClassName();
 		Assert.state(beanClassName != null, "No bean class name set");
+		// 获取类的简短名称，不包含包路径；
 		String shortClassName = ClassUtils.getShortName(beanClassName);
+		// 让简短名称首字母小写，返回作为bean名称；
 		return Introspector.decapitalize(shortClassName);
 	}
 

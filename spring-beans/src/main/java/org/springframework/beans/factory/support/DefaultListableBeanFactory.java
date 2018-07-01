@@ -107,6 +107,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	private boolean allowEagerClassLoading = true;
 
 	/** Optional OrderComparator for dependency Lists and arrays */
+	// 可选的顺序比较器，给依赖列表或者数据使用；
 	@Nullable
 	private Comparator<Object> dependencyComparator;
 

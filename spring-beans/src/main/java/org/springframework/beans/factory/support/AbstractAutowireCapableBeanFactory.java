@@ -516,7 +516,6 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		3. 向容器中缓存单态模式的Bean对象，以防循环引用；
 		4. 调用 populateBean，对Bean属性的依赖注入进行处理；
 		5. 调用 initializeBean，为Bean实例对象应用Aware接口和BeanPostProcessor后置处理器；
-		6.
 		 */
 
 		// Instantiate the bean.
@@ -569,6 +568,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 						"' to allow for resolving potential circular references");
 			}
 			//这里是一个匿名内部类，为了防止循环引用，尽早持有对象的引用
+			// 通过提前暴露刚完成构造器注入但未完成其他步骤（比如setter注入）的bean，而且是暴露一个单例工厂方法，从而使其他bean能引用到该bean；
+			// 来解决setter注入循环依赖的问题；
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
@@ -1133,6 +1134,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (autowireNecessary) {
 				//配置了自动装配属性，使用容器的自动装配实例化
 				//容器的自动装配是根据参数类型匹配Bean的构造方法
+				// 构造器自动注入；
 				return autowireConstructor(beanName, mbd, null, null);
 			}
 			else {

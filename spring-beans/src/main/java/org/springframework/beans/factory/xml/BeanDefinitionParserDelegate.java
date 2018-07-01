@@ -1449,22 +1449,28 @@ public class BeanDefinitionParserDelegate {
 		return TRUE_VALUE.equals(value);
 	}
 
+	// 解析自定义标签；
 	@Nullable
 	public BeanDefinition parseCustomElement(Element ele) {
 		return parseCustomElement(ele, null);
 	}
 
+	// 解析自定义标签；
 	@Nullable
 	public BeanDefinition parseCustomElement(Element ele, @Nullable BeanDefinition containingBd) {
+		// 获取命名空间；
 		String namespaceUri = getNamespaceURI(ele);
 		if (namespaceUri == null) {
 			return null;
 		}
+		// 用NamespaceHandlerResolver来解析命名空间，获取 对应的 NamespaceHandler；
 		NamespaceHandler handler = this.readerContext.getNamespaceHandlerResolver().resolve(namespaceUri);
 		if (handler == null) {
 			error("Unable to locate Spring NamespaceHandler for XML schema namespace [" + namespaceUri + "]", ele);
 			return null;
 		}
+
+		// 调用 NamespaceHandler.parse，实际上调用 NamespaceHandlerSupport.parse；
 		return handler.parse(ele, new ParserContext(this.readerContext, this, containingBd));
 	}
 
