@@ -395,6 +395,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 		// Check if required type matches the type of the actual bean instance.
 		//对创建的Bean实例对象进行类型检查
+		// 如果by-name注入的类型不是匹配的类型，那么抛出 BeanNotOfRequiredTypeException；
 		if (requiredType != null && !requiredType.isInstance(bean)) {
 			try {
 				T convertedBean = getTypeConverter().convertIfNecessary(bean, requiredType);

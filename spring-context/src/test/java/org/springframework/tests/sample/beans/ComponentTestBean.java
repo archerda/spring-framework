@@ -2,6 +2,8 @@ package org.springframework.tests.sample.beans;
 
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+
 /**
  * desc
  *
@@ -10,6 +12,10 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class ComponentTestBean {
+
+	@Resource
+	// @Autowired
+	private Object beanWithObjectPropertyA;
 
 	private String name;
 

@@ -16,34 +16,6 @@
 
 package org.springframework.context.annotation;
 
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.io.Serializable;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Member;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
-import javax.ejb.EJB;
-import javax.xml.namespace.QName;
-import javax.xml.ws.Service;
-import javax.xml.ws.WebServiceClient;
-import javax.xml.ws.WebServiceRef;
-
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.BeanUtils;
@@ -55,22 +27,32 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.annotation.InjectionMetadata;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.config.DependencyDescriptor;
-import org.springframework.beans.factory.config.EmbeddedValueResolver;
-import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
+import org.springframework.beans.factory.config.*;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.Ordered;
 import org.springframework.jndi.support.SimpleJndiBeanFactory;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.util.StringValueResolver;
+import org.springframework.util.*;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.xml.namespace.QName;
+import javax.xml.ws.Service;
+import javax.xml.ws.WebServiceClient;
+import javax.xml.ws.WebServiceRef;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * {@link org.springframework.beans.factory.config.BeanPostProcessor} implementation
@@ -188,6 +170,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	@Nullable
 	private transient StringValueResolver embeddedValueResolver;
 
+	// 保存了@Resource注入的bean， bean名称与需要依赖注入的元数据的映射；
 	private transient final Map<String, InjectionMetadata> injectionMetadataCache = new ConcurrentHashMap<>(256);
 
 
@@ -295,6 +278,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
 		super.postProcessMergedBeanDefinition(beanDefinition, beanType, beanName);
+		// 获取需要注入的属性；
 		InjectionMetadata metadata = findResourceMetadata(beanName, beanType, null);
 		metadata.checkConfigMembers(beanDefinition);
 	}
@@ -313,8 +297,11 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	public PropertyValues postProcessPropertyValues(
 			PropertyValues pvs, PropertyDescriptor[] pds, Object bean, String beanName) throws BeansException {
 
+		// 获取注入的元数据；
+		// 只有@Resource注解才能获取到；
 		InjectionMetadata metadata = findResourceMetadata(beanName, bean.getClass(), pvs);
 		try {
+			// 开始进行依赖注入；
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (Throwable ex) {
@@ -336,6 +323,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 					if (metadata != null) {
 						metadata.clear(pvs);
 					}
+					// 从class文件找 @Resource 标记的属性；
 					metadata = buildResourceMetadata(clazz);
 					this.injectionMetadataCache.put(cacheKey, metadata);
 				}
@@ -365,6 +353,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 					}
 					currElements.add(new EjbRefElement(field, field, null));
 				}
+				// 如果字段用 @Resources 标记；
 				else if (field.isAnnotationPresent(Resource.class)) {
 					if (Modifier.isStatic(field.getModifiers())) {
 						throw new IllegalStateException("@Resource annotation is not supported on static fields");
@@ -470,6 +459,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	 * @return the resource object (never {@code null})
 	 * @throws BeansException if we failed to obtain the target resource
 	 */
+	// 获取给定名称和类型的资源对象
 	protected Object getResource(LookupElement element, @Nullable String requestingBeanName) throws BeansException {
 		if (StringUtils.hasLength(element.mappedName)) {
 			return this.jndiFactory.getBean(element.mappedName, element.lookupType);
@@ -481,6 +471,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 			throw new NoSuchBeanDefinitionException(element.lookupType,
 					"No resource factory configured - specify the 'resourceFactory' property");
 		}
+		// 获取自动注入资源；
 		return autowireResource(this.resourceFactory, element, requestingBeanName);
 	}
 
@@ -493,6 +484,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	 * @return the resource object (never {@code null})
 	 * @throws BeansException if we failed to obtain the target resource
 	 */
+	// 通过基于给定工厂的自动装配获取给定名称和类型的资源对象。
 	protected Object autowireResource(BeanFactory factory, LookupElement element, @Nullable String requestingBeanName)
 			throws BeansException {
 
@@ -500,16 +492,24 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 		Set<String> autowiredBeanNames;
 		String name = element.name;
 
+		// 如果 允许回退到默认的类型匹配 && 依赖的元素是默认的名称 && 容器是支持自动注入的 && 容器当前不包含这个被依赖的bean；
 		if (this.fallbackToDefaultTypeMatch && element.isDefaultName &&
 				factory instanceof AutowireCapableBeanFactory && !factory.containsBean(name)) {
+
 			autowiredBeanNames = new LinkedHashSet<>();
+
+			// 回退到和 @Autowired 一样，根据类型注入；
 			resource = ((AutowireCapableBeanFactory) factory).resolveDependency(
 					element.getDependencyDescriptor(), requestingBeanName, autowiredBeanNames, null);
+
+			// 容器中无法找到这个被依赖的bean，抛出异常；
 			if (resource == null) {
 				throw new NoSuchBeanDefinitionException(element.getLookupType(), "No resolvable resource object");
 			}
 		}
 		else {
+			// 根据依赖的bean的名称和bean的类型，在容器中获取这个bean；
+			// 根据name注入；
 			resource = factory.getBean(name, element.lookupType);
 			autowiredBeanNames = Collections.singleton(name);
 		}
@@ -518,6 +518,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 			ConfigurableBeanFactory beanFactory = (ConfigurableBeanFactory) factory;
 			for (String autowiredBeanName : autowiredBeanNames) {
 				if (requestingBeanName != null && beanFactory.containsBean(autowiredBeanName)) {
+					// 给容器注册被依赖的bean；
 					beanFactory.registerDependentBean(autowiredBeanName, requestingBeanName);
 				}
 			}
@@ -612,6 +613,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 			this.lazyLookup = (lazy != null && lazy.value());
 		}
 
+		// 获取注入的资源；
 		@Override
 		protected Object getResourceToInject(Object target, @Nullable String requestingBeanName) {
 			return (this.lazyLookup ? buildLazyResourceProxy(this, requestingBeanName) :

@@ -223,7 +223,6 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 			// 解析自定义命名空间；
 			// Document的根节点没有使用Spring默认的命名空间，则使用用户自定义的解析规则解析Document根节点
 			// 处理以下标签：<context:component-scan>、
-			// TODO by archerda on 2018/6/29: Here
 			delegate.parseCustomElement(root);
 		}
 	}

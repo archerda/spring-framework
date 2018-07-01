@@ -84,10 +84,12 @@ public class InjectionMetadata {
 				(checkedElements != null ? checkedElements : this.injectedElements);
 		if (!elementsToIterate.isEmpty()) {
 			boolean debug = logger.isDebugEnabled();
+			// 循环遍历需要依赖注入的属性；
 			for (InjectedElement element : elementsToIterate) {
 				if (debug) {
 					logger.debug("Processing injected element of bean '" + beanName + "': " + element);
 				}
+				// 开始注入；
 				element.inject(target, beanName, pvs);
 			}
 		}
@@ -171,6 +173,7 @@ public class InjectionMetadata {
 		protected void inject(Object target, @Nullable String requestingBeanName, @Nullable PropertyValues pvs)
 				throws Throwable {
 
+			// 属性注入；
 			if (this.isField) {
 				Field field = (Field) this.member;
 				ReflectionUtils.makeAccessible(field);
@@ -181,6 +184,7 @@ public class InjectionMetadata {
 					return;
 				}
 				try {
+					// 方法注入；
 					Method method = (Method) this.member;
 					ReflectionUtils.makeAccessible(method);
 					method.invoke(target, getResourceToInject(target, requestingBeanName));

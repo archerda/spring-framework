@@ -24,7 +24,6 @@ import javax.annotation.Resource;
  */
 public class BeanWithObjectProperty {
 
-	@Resource
 	private Object object;
 
 	public Object getObject() {
