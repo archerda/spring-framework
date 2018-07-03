@@ -30,6 +30,7 @@ import org.springframework.web.context.request.NativeWebRequest;
  * @since 3.1
  * @see HandlerMethodReturnValueHandler
  */
+// 用于在给定请求的上下文中将方法参数解析为参数值的策略接口。
 public interface HandlerMethodArgumentResolver {
 
 	/**
@@ -39,6 +40,7 @@ public interface HandlerMethodArgumentResolver {
 	 * @return {@code true} if this resolver supports the supplied parameter;
 	 * {@code false} otherwise
 	 */
+	// 该解析器是否支持此种类型的参数
 	boolean supportsParameter(MethodParameter parameter);
 
 	/**
@@ -56,6 +58,7 @@ public interface HandlerMethodArgumentResolver {
 	 * @return the resolved argument value, or {@code null} if not resolvable
 	 * @throws Exception in case of errors with the preparation of argument values
 	 */
+	// 解析方法的单个参数
 	@Nullable
 	Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception;

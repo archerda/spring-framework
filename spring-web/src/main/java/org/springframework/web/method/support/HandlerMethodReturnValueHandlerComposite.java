@@ -16,16 +16,15 @@
 
 package org.springframework.web.method.support;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.MethodParameter;
 import org.springframework.lang.Nullable;
 import org.springframework.web.context.request.NativeWebRequest;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Handles method return values by delegating to a list of registered {@link HandlerMethodReturnValueHandler}s.
@@ -75,10 +74,13 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
 			ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
 
+		// 根据返回值类型，获取处理器；
 		HandlerMethodReturnValueHandler handler = selectHandler(returnValue, returnType);
 		if (handler == null) {
 			throw new IllegalArgumentException("Unknown return value type: " + returnType.getParameterType().getName());
 		}
+
+		// 委托给返回值处理器处理；比如"RequestResponseBodyMethodProcessor"
 		handler.handleReturnValue(returnValue, returnType, mavContainer, webRequest);
 	}
 

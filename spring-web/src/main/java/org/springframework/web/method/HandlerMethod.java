@@ -16,12 +16,8 @@
 
 package org.springframework.web.method;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.GenericTypeResolver;
@@ -33,6 +29,9 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 
 /**
  * Encapsulates information about a handler method consisting of a
@@ -119,16 +118,30 @@ public class HandlerMethod {
 		Assert.hasText(beanName, "Bean name is required");
 		Assert.notNull(beanFactory, "BeanFactory is required");
 		Assert.notNull(method, "Method is required");
+
+		// 设置bean名称；
 		this.bean = beanName;
+
+		// 设置bean工厂；
 		this.beanFactory = beanFactory;
 		Class<?> beanType = beanFactory.getType(beanName);
 		if (beanType == null) {
 			throw new IllegalStateException("Cannot resolve bean type for bean with name '" + beanName + "'");
 		}
+
+		// 设置bean类型；
 		this.beanType = ClassUtils.getUserClass(beanType);
+
+		// 设置方法；
 		this.method = method;
+
+		// 设置桥接方法；
 		this.bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
+
+		// 设置方法上的参数（重要）；
 		this.parameters = initMethodParameters();
+
+		// 计算响应码；（@ResponseStatus注解）
 		evaluateResponseStatus();
 	}
 

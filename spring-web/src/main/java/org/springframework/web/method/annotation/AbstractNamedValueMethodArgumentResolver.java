@@ -16,10 +16,6 @@
 
 package org.springframework.web.method.annotation;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import javax.servlet.ServletException;
-
 import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.config.BeanExpressionContext;
@@ -35,6 +31,10 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestScope;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+
+import javax.servlet.ServletException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Abstract base class for resolving method arguments from a named value.
@@ -94,6 +94,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 	public final Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
 
+		// 获取参数名称；
 		NamedValueInfo namedValueInfo = getNamedValueInfo(parameter);
 		MethodParameter nestedParameter = parameter.nestedIfOptional();
 
@@ -103,6 +104,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 					"Specified name must not resolve to null: [" + namedValueInfo.name + "]");
 		}
 
+		// 根据参数名称获取参数值；由子类实现，比如"RequestParamMethodArgumentResolver"
 		Object arg = resolveName(resolvedName.toString(), nestedParameter, webRequest);
 		if (arg == null) {
 			if (namedValueInfo.defaultValue != null) {
@@ -117,6 +119,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 			arg = resolveStringValue(namedValueInfo.defaultValue);
 		}
 
+		// 处理 @InitBinder，来获取参数值；
 		if (binderFactory != null) {
 			WebDataBinder binder = binderFactory.createBinder(webRequest, null, namedValueInfo.name);
 			try {
@@ -133,6 +136,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 			}
 		}
 
+		// 处理解析后的参数值
 		handleResolvedValue(arg, namedValueInfo.name, parameter, mavContainer, webRequest);
 
 		return arg;
@@ -180,6 +184,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 	 * Resolve the given annotation-specified value,
 	 * potentially containing placeholders and expressions.
 	 */
+	// 解析给定的注解指定值，可能包含占位符和表达式。
 	@Nullable
 	private Object resolveStringValue(String value) {
 		if (this.configurableBeanFactory == null) {

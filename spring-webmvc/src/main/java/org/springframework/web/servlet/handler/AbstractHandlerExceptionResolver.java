@@ -16,18 +16,16 @@
 
 package org.springframework.web.servlet.handler;
 
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.Ordered;
 import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Set;
 
 /**
  * Abstract base class for {@link HandlerExceptionResolver} implementations.
@@ -132,11 +130,14 @@ public abstract class AbstractHandlerExceptionResolver implements HandlerExcepti
 	public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response,
 			@Nullable Object handler, Exception ex) {
 
+		// 是否可以处理；
 		if (shouldApplyTo(request, handler)) {
 			if (this.logger.isDebugEnabled()) {
 				this.logger.debug("Resolving exception from handler [" + handler + "]: " + ex);
 			}
 			prepareResponse(ex, response);
+
+			// 开始解析异常；
 			ModelAndView result = doResolveException(request, response, handler, ex);
 			if (result != null) {
 				logException(ex, request);

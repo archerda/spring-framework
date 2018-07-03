@@ -1459,6 +1459,8 @@ public class BeanDefinitionParserDelegate {
 	@Nullable
 	public BeanDefinition parseCustomElement(Element ele, @Nullable BeanDefinition containingBd) {
 		// 获取命名空间；
+		// Context的命名空间是: "http://www.springframework.org/schema/context"
+		// SpringMVC的是命名空间是："http://www.springframework.org/schema/mvc"
 		String namespaceUri = getNamespaceURI(ele);
 		if (namespaceUri == null) {
 			return null;

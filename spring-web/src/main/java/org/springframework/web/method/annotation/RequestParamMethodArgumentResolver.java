@@ -16,13 +16,6 @@
 
 package org.springframework.web.method.annotation;
 
-import java.beans.PropertyEditor;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.Part;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.MethodParameter;
@@ -46,6 +39,13 @@ import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.multipart.support.MultipartResolutionDelegate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
+import java.beans.PropertyEditor;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Resolves method arguments annotated with @{@link RequestParam}, arguments of
@@ -160,8 +160,11 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 	@Override
 	@Nullable
 	protected Object resolveName(String name, MethodParameter parameter, NativeWebRequest request) throws Exception {
+
+		// 获取request；
 		HttpServletRequest servletRequest = request.getNativeRequest(HttpServletRequest.class);
 
+		// 解析文件；
 		if (servletRequest != null) {
 			Object mpArg = MultipartResolutionDelegate.resolveMultipartArgument(name, parameter, servletRequest);
 			if (mpArg != MultipartResolutionDelegate.UNRESOLVABLE) {
@@ -177,6 +180,8 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 				arg = (files.size() == 1 ? files.get(0) : files);
 			}
 		}
+
+		// 解析其他类型的值；
 		if (arg == null) {
 			String[] paramValues = request.getParameterValues(name);
 			if (paramValues != null) {

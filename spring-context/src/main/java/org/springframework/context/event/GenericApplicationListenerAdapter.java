@@ -55,6 +55,7 @@ public class GenericApplicationListenerAdapter implements GenericApplicationList
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
+		// 委托给 org.springframework.web.servlet.FrameworkServlet.ContextRefreshListener
 		this.delegate.onApplicationEvent(event);
 	}
 

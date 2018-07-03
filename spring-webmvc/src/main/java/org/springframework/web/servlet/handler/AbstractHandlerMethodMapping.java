@@ -16,21 +16,6 @@
 
 package org.springframework.web.servlet.handler;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.InitializingBean;
@@ -44,6 +29,13 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Abstract base class for {@link HandlerMapping} implementations that define
@@ -194,18 +186,27 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @see #getMappingForMethod(Method, Class)
 	 * @see #handlerMethodsInitialized(Map)
 	 */
+	// 初始化处理器的方式；
 	protected void initHandlerMethods() {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Looking for request mappings in application context: " + getApplicationContext());
 		}
+
+		// 获取MVC上下文中所有bean的名称；
+		// 包含系统和用户的；
 		String[] beanNames = (this.detectHandlerMethodsInAncestorContexts ?
 				BeanFactoryUtils.beanNamesForTypeIncludingAncestors(obtainApplicationContext(), Object.class) :
 				obtainApplicationContext().getBeanNamesForType(Object.class));
 
+		// 遍历所有的bean名称；
 		for (String beanName : beanNames) {
+
+			// 如果bean名称不是以"scopedTarget"开头的；
+			// 换句话说，SpringMVC在这里不处理"scopedTarget"开头的bean；
 			if (!beanName.startsWith(SCOPED_TARGET_NAME_PREFIX)) {
 				Class<?> beanType = null;
 				try {
+					// 获取bean的Class对象；
 					beanType = obtainApplicationContext().getType(beanName);
 				}
 				catch (Throwable ex) {
@@ -214,11 +215,16 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 						logger.debug("Could not resolve target class for bean with name '" + beanName + "'", ex);
 					}
 				}
+				// bean的类型是需要处理的；
 				if (beanType != null && isHandler(beanType)) {
+
+					// 检测处理器方法；
 					detectHandlerMethods(beanName);
 				}
 			}
 		}
+
+		// 初始化所有刚检测到的Controller上的方法，实际上啥也没做；
 		handlerMethodsInitialized(getHandlerMethods());
 	}
 
@@ -227,14 +233,20 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @param handler the bean name of a handler or a handler instance
 	 */
 	protected void detectHandlerMethods(final Object handler) {
+		// 获取处理器的Class对象；
+		// 比如"class com.facishare.wechat.proxy.callback.client.controller.TestController"
 		Class<?> handlerType = (handler instanceof String ?
 				obtainApplicationContext().getType((String) handler) : handler.getClass());
 
 		if (handlerType != null) {
 			final Class<?> userType = ClassUtils.getUserClass(handlerType);
+
+			// 获取Handler的用户方法；
+			// key是Method，value是 RequestMappingInfo；
 			Map<Method, T> methods = MethodIntrospector.selectMethods(userType,
 					(MethodIntrospector.MetadataLookup<T>) method -> {
 						try {
+							// 把 Class和Method 封装为 RequestMappingInfo
 							return getMappingForMethod(method, userType);
 						}
 						catch (Throwable ex) {
@@ -245,7 +257,10 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			if (logger.isDebugEnabled()) {
 				logger.debug(methods.size() + " request handler methods found on " + userType + ": " + methods);
 			}
+
+
 			for (Map.Entry<Method, T> entry : methods.entrySet()) {
+				// 获取
 				Method invocableMethod = AopUtils.selectInvocableMethod(entry.getKey(), userType);
 				T mapping = entry.getValue();
 				registerHandlerMethod(handler, invocableMethod, mapping);
@@ -262,7 +277,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @throws IllegalStateException if another method was already registered
 	 * under the same mapping
 	 */
+	// 注册一个处理程序方法及其唯一映射。 在启动时为每个检测到的处理程序方法调用。
 	protected void registerHandlerMethod(Object handler, Method method, T mapping) {
+		// 注册mapping，实际调用的是 org.springframework.web.servlet.handler.AbstractHandlerMethodMapping.MappingRegistry.register
 		this.mappingRegistry.register(mapping, handler, method);
 	}
 
@@ -276,18 +293,22 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		HandlerMethod handlerMethod;
 		if (handler instanceof String) {
 			String beanName = (String) handler;
+			// 创建 HandlerMethod，这里面还没有 parameterType 和 parameterName;
 			handlerMethod = new HandlerMethod(beanName,
 					obtainApplicationContext().getAutowireCapableBeanFactory(), method);
 		}
 		else {
 			handlerMethod = new HandlerMethod(handler, method);
 		}
+
+		// 返回 HandlerMethod；
 		return handlerMethod;
 	}
 
 	/**
 	 * Extract and return the CORS configuration for the mapping.
 	 */
+	// 提取并返回映射的CORS配置。
 	@Nullable
 	protected CorsConfiguration initCorsConfiguration(Object handler, Method method, T mapping) {
 		return null;
@@ -542,30 +563,39 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		public void register(T mapping, Object handler, Method method) {
 			this.readWriteLock.writeLock().lock();
 			try {
+				// 创建 HandlerMethod；
 				HandlerMethod handlerMethod = createHandlerMethod(handler, method);
 				assertUniqueMethodMapping(handlerMethod, mapping);
 
 				if (logger.isInfoEnabled()) {
 					logger.info("Mapped \"" + mapping + "\" onto " + handlerMethod);
 				}
+
+				// 设置到 mappingLookup，key为 RequestMappingInfo，value为HandlerMethod；
 				this.mappingLookup.put(mapping, handlerMethod);
 
+				// 获取类级别的url；
 				List<String> directUrls = getDirectUrls(mapping);
 				for (String url : directUrls) {
+					// 设置到 urlLookup；
 					this.urlLookup.add(url, mapping);
 				}
 
 				String name = null;
 				if (getNamingStrategy() != null) {
+					// 获取策略名，比如TestController#path，那么为TC#path
 					name = getNamingStrategy().getName(handlerMethod, mapping);
+					// 设置到 nameLookup 里面；
 					addMappingName(name, handlerMethod);
 				}
 
+				// 提取并返回映射的CORS配置;
 				CorsConfiguration corsConfig = initCorsConfiguration(handler, method, mapping);
 				if (corsConfig != null) {
 					this.corsLookup.put(handlerMethod, corsConfig);
 				}
 
+				// 设置到registry里面，key为RequestMappingInfo，value为MappingRegistration；
 				this.registry.put(mapping, new MappingRegistration<>(mapping, handlerMethod, directUrls, name));
 			}
 			finally {
