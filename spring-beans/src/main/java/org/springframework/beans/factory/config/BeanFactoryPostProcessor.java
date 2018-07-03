@@ -42,6 +42,8 @@ import org.springframework.beans.BeansException;
  * @see BeanPostProcessor
  * @see PropertyResourceConfigurer
  */
+	// 类似于BeanPostProcessor可以对bean的定义进行处理，BeanFactoryPostProcessor就是在容器实际实例化其他任何bean之前读取配置元数据，并且可能修改他；
+	// 典型应用：PropertyPlaceholderConfigurer;
 @FunctionalInterface
 public interface BeanFactoryPostProcessor {
 

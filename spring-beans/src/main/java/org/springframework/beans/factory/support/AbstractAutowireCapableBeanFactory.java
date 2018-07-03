@@ -524,6 +524,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		if (mbd.isSingleton()) {
 			//单态模式的Bean，先从容器中缓存中获取同名Bean
+			//如果是单例则需要先清理缓存，并把BeanDefinition转化为BeanWrapper；
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
 
@@ -548,6 +549,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				try {
 					// Bean生命周期：调用 MergedBeanDefinitionPostProcessor.postProcessMergedBeanDefinition()；
 					// 把依赖的属性设置到相应Processor里面去；
+					// Autowired注解正是通过此方法实现诸如类型的预解析；
 					applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
 				}
 				catch (Throwable ex) {
@@ -571,6 +573,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			//这里是一个匿名内部类，为了防止循环引用，尽早持有对象的引用
 			// 通过提前暴露刚完成构造器注入但未完成其他步骤（比如setter注入）的bean，而且是暴露一个单例工厂方法，从而使其他bean能引用到该bean；
 			// 来解决setter注入循环依赖的问题；
+			// 对bean再一次依赖引用，主要应用 SmartInstantiationAware BeanPostProcess；
+			// 其中我们熟知的AOP就是在这里将advice动态织入bean中，若没有则直接返回bean，不做任何处理；
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
@@ -1101,6 +1105,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	// 使用适当的实例化策略创建指定bean的新实例：工厂方法，构造函数自动装配或简单实例化。
 	protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd, @Nullable Object[] args) {
 		// Make sure bean class is actually resolved at this point.
+		// 解析class；
 		Class<?> beanClass = resolveBeanClass(mbd, beanName);
 
 		//检查确认Bean是可实例化的
@@ -1126,6 +1131,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		boolean autowireNecessary = false;
 		if (args == null) {
 			synchronized (mbd.constructorArgumentLock) {
+				// 一个类有多个构造方法，每个构造方法都有不同的参数，所以调用钱需要先根据参数锁定构造方法或对应的工厂方法；
 				if (mbd.resolvedConstructorOrFactoryMethod != null) {
 					resolved = true;
 					autowireNecessary = mbd.constructorArgumentsResolved;
@@ -1799,7 +1805,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		try {
-			// Bean生命周期：调用init方法；
+			// Bean生命周期：调用 InitializingBean#afterPropertiesSet方法 和 init方法；
 			invokeInitMethods(beanName, wrappedBean, mbd);
 		}
 		catch (Throwable ex) {
