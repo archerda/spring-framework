@@ -16,24 +16,18 @@
 
 package org.springframework.context.support;
 
-import java.io.IOException;
-import java.util.Properties;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
 import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.ConfigurablePropertyResolver;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.MutablePropertySources;
-import org.springframework.core.env.PropertiesPropertySource;
-import org.springframework.core.env.PropertySource;
-import org.springframework.core.env.PropertySources;
-import org.springframework.core.env.PropertySourcesPropertyResolver;
+import org.springframework.core.env.*;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringValueResolver;
+
+import java.io.IOException;
+import java.util.Properties;
 
 /**
  * Specialization of {@link PlaceholderConfigurerSupport} that resolves ${...} placeholders
@@ -61,6 +55,11 @@ import org.springframework.util.StringValueResolver;
  * @see org.springframework.beans.factory.config.PlaceholderConfigurerSupport
  * @see org.springframework.beans.factory.config.PropertyPlaceholderConfigurer
  */
+// PropertySourcesPlaceholderConfigurer 或者 PropertyPlaceholderConfigurer 仅仅是做了一个配置文件的解析工作，真正的注入并不由它们完成，而是托付给了Spring 的Bean初始化流程。
+// PropertySourcesPlaceholderConfigurer本质上是一个BeanFactoryPostProcessor。解析XML的流程在BeanFactoryPostProcessor之前，
+// 优先将配置文件的路径以及名字通过Setter传入PropertySourcesPlaceholderConfigurer。
+//
+// 如上BeanFactoryPostProcessor的优先级又优于其余的Bean。因此可以实现在bean初始化之前的注入。
 public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerSupport implements EnvironmentAware {
 
 	/**
@@ -140,6 +139,8 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 				);
 			}
 			try {
+				// 加载本地的所有资源；
+				// 之所以叫做合并是因为多个.properties文件中可能有相同的Key;
 				PropertySource<?> localPropertySource =
 						new PropertiesPropertySource(LOCAL_PROPERTIES_PROPERTY_SOURCE_NAME, mergeProperties());
 				if (this.localOverride) {
@@ -154,7 +155,9 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 			}
 		}
 
+		// 开始替换占位符"${...}"了
 		processProperties(beanFactory, new PropertySourcesPropertyResolver(this.propertySources));
+
 		this.appliedPropertySources = this.propertySources;
 	}
 
@@ -165,10 +168,14 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 	protected void processProperties(ConfigurableListableBeanFactory beanFactoryToProcess,
 			final ConfigurablePropertyResolver propertyResolver) throws BeansException {
 
+		// 设置占位符前缀，如"${"
 		propertyResolver.setPlaceholderPrefix(this.placeholderPrefix);
+		// 设置占位符后缀，如"}"
 		propertyResolver.setPlaceholderSuffix(this.placeholderSuffix);
+		// 设置值分隔符，如":"
 		propertyResolver.setValueSeparator(this.valueSeparator);
 
+		// 创建一个Bean定义访问工具，持有字符串值解析器，想见可以通过BeanDefinitionVisitor访问Bean定义，在遇到需要解析的字符串的时候使用构造函数传入的StringValueResolver解析字符串。
 		StringValueResolver valueResolver = strVal -> {
 			String resolved = (ignoreUnresolvablePlaceholders ?
 					propertyResolver.resolvePlaceholders(strVal) :

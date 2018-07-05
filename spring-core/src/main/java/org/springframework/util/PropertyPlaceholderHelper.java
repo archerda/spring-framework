@@ -16,16 +16,11 @@
 
 package org.springframework.util;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.lang.Nullable;
+
+import java.util.*;
 
 /**
  * Utility class for working with Strings that have placeholder values in them. A placeholder takes the form
@@ -124,8 +119,19 @@ public class PropertyPlaceholderHelper {
 		return parseStringValue(value, placeholderResolver, new HashSet<>());
 	}
 
+	// 替换占位符的核心代码;
 	protected String parseStringValue(
 			String value, PlaceholderResolver placeholderResolver, Set<String> visitedPlaceholders) {
+
+		/*
+		1. 获取占位符前缀"${"的位置索引startIndex
+		2. 占位符前缀"{"存在，从"{"后面开始获取占位符后缀"}"的位置索引endIndex
+		3. 如果占位符前缀位置索引startIndex与占位符后缀的位置索引endIndex都存在，截取中间的部分placeHolder
+		4. 从Properties中获取placeHolder对应的值propVal
+		5. 如果propVal不存在，尝试对placeHolder使用":"进行一次分割，如果分割出来有结果，那么前面一部分命名为actualPlaceholder，
+			后面一部分命名为defaultValue，尝试从Properties中获取actualPlaceholder对应的value，如果存在则取此value，如果不存在则取defaultValue，最终赋值给propVal
+		6. 返回propVal，就是替换之后的值
+		 */
 
 		StringBuilder result = new StringBuilder(value);
 

@@ -429,7 +429,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		1. 判断需要创建的Bean是否可以实例化，即是否可以通过当前的类加载器加载，不可以则抛出异常；
 		2. 校验和准备Bean中的方法覆盖（lookup-method）
 		3. 调用 InstantiationAwareBeanPostProcessor.postProcessBeforeInstantiation；
-		4. 创建Bean实例；
+		4. 调用 InstantiationAwareBeanPostProcessor.postProcessAfterInstantiation；
+		5. 创建Bean实例；
 		 */
 
 		if (logger.isDebugEnabled()) {
@@ -459,7 +460,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		try {
 			// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
-			// 如果配置了InstantiationAwareBeanPostProcessor处理器，则试图返回一个需要创建Bean的代理对象
+			// 如果配置了 InstantiationAwareBeanPostProcessor 处理器，则试图返回一个需要创建Bean的代理对象
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			if (bean != null) {
 				return bean;
@@ -471,8 +472,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		try {
+
 			//创建Bean的入口
 			Object beanInstance = doCreateBean(beanName, mbdToUse, args);
+
 			if (logger.isDebugEnabled()) {
 				logger.debug("Finished creating instance of bean '" + beanName + "'");
 			}
@@ -1873,6 +1876,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				}
 			}
 			else {
+				// Bean生命周期：InitializingBean#afterPropertiesSet;
 				((InitializingBean) bean).afterPropertiesSet();
 			}
 		}
@@ -1882,6 +1886,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (StringUtils.hasLength(initMethodName) &&
 					!(isInitializingBean && "afterPropertiesSet".equals(initMethodName)) &&
 					!mbd.isExternallyManagedInitMethod(initMethodName)) {
+				// Bean生命周期：调用 init 方法；
 				invokeCustomInitMethod(beanName, bean, mbd);
 			}
 		}

@@ -1663,7 +1663,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		 */
 
 		// Don't let calling code try to dereference the factory if the bean isn't a factory.
-		// 如果name是由&符号的，但是实例不是FactoryBean，那么抛出 BeanIsNotAFactoryException 异常；
+		// 3. 如果name是由&符号的，但是实例不是FactoryBean，那么抛出 BeanIsNotAFactoryException 异常；
 		// 也就是，bean实例是普通bean，却想获取工厂bean，显然是不可能的，所以抛异常了；
 		if (BeanFactoryUtils.isFactoryDereference(name) && !(beanInstance instanceof FactoryBean)) {
 			throw new BeanIsNotAFactoryException(transformedBeanName(name), beanInstance.getClass());
@@ -1672,7 +1672,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		// Now we have the bean instance, which may be a normal bean or a FactoryBean.
 		// If it's a FactoryBean, we use it to create a bean instance, unless the
 		// caller actually wants a reference to the factory.
-		// 如果bean实例不是工厂bean，或者name是&开头，那么直接返回实例；
+		// 4. 如果bean实例不是工厂bean，并且name不是&开头，那么直接返回实例；
 		// 也就是，返回普通bean或者工厂bean本身；
 		if (!(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)) {
 			return beanInstance;

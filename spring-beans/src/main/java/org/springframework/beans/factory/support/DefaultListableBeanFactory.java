@@ -1077,9 +1077,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 
 			Class<?> type = descriptor.getDependencyType();
+
+			// 获取注解的 value() 值。被写死为 Class<? extends Annotation> valueAnnotationType = Value.class;
+			// 见类 QualifierAnnotationAutowireCandidateResolver
 			Object value = getAutowireCandidateResolver().getSuggestedValue(descriptor);
 			if (value != null) {
 				if (value instanceof String) {
+					// 通过PropertySourcesPlaceholderConfigurer写入的键值对元素获取元素的值.
+					// 方法内注册了多个StringValueResolver，循环查找值。提供者为PropertySourcesPlaceholderConfigurer,因此配置多个解析器的时候是以最后的配置为准的。
 					String strVal = resolveEmbeddedValue((String) value);
 					BeanDefinition bd = (beanName != null && containsBean(beanName) ? getMergedBeanDefinition(beanName) : null);
 					value = evaluateBeanDefinitionString(strVal, bd);
