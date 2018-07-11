@@ -64,6 +64,7 @@ public abstract class AutoProxyUtils {
 	 * @return whether the given bean should be proxied with its target class
 	 */
 	public static boolean shouldProxyTargetClass(ConfigurableListableBeanFactory beanFactory, @Nullable String beanName) {
+		// 如果 BeanDefinition 的 preserveTargetClass 属性为true，那么代理类而不是接口；
 		if (beanName != null && beanFactory.containsBeanDefinition(beanName)) {
 			BeanDefinition bd = beanFactory.getBeanDefinition(beanName);
 			return Boolean.TRUE.equals(bd.getAttribute(PRESERVE_TARGET_CLASS_ATTRIBUTE));
@@ -102,10 +103,13 @@ public abstract class AutoProxyUtils {
 	 * @param targetClass the corresponding target class
 	 * @since 4.2.3
 	 */
+	// 如果可能，公开指定bean的给定目标类。
 	static void exposeTargetClass(ConfigurableListableBeanFactory beanFactory, @Nullable String beanName,
 			Class<?> targetClass) {
 
 		if (beanName != null && beanFactory.containsBeanDefinition(beanName)) {
+			// 属性的key是：org.springframework.aop.framework.autoproxy.AutoProxyUtils.originalTargetClass
+			// value是：类似 class com.facishare.wechat.proxy.provider.service.impl.WechatAuthServiceImpl
 			beanFactory.getMergedBeanDefinition(beanName).setAttribute(ORIGINAL_TARGET_CLASS_ATTRIBUTE, targetClass);
 		}
 	}

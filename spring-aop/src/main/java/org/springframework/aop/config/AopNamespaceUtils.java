@@ -65,34 +65,49 @@ public abstract class AopNamespaceUtils {
 	public static void registerAspectJAutoProxyCreatorIfNecessary(
 			ParserContext parserContext, Element sourceElement) {
 
+		// 创建 AspectJAutoProxyCreator；
 		BeanDefinition beanDefinition = AopConfigUtils.registerAspectJAutoProxyCreatorIfNecessary(
 				parserContext.getRegistry(), parserContext.extractSource(sourceElement));
+
+		// 处理 proxy-target-class 属性和 expose-proxy 属性；
 		useClassProxyingIfNecessary(parserContext.getRegistry(), sourceElement);
+
+		// 如果成功创建了 AspectJAutoProxyCreator，则注册到容器中；
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
 
+	// 注册AnnotationAwareAspectJAutoProxyCreator；
 	public static void registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 			ParserContext parserContext, Element sourceElement) {
 
+		// 注册或升级 AutoProxyCreator 定义 beanName 为 org.springframework.aop.config.internalAutoProxyCreator 的 BeanDefinition；
 		BeanDefinition beanDefinition = AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 				parserContext.getRegistry(), parserContext.extractSource(sourceElement));
+
+		// 对于 proxy-target-class 以及 expose-proxy 属性的处理；
 		useClassProxyingIfNecessary(parserContext.getRegistry(), sourceElement);
+
+		// 注册组件并通知，便于监听器做进一步处理；
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
 
+	// 对于 proxy-target-class 以及 expose-proxy 属性的处理；
 	private static void useClassProxyingIfNecessary(BeanDefinitionRegistry registry, @Nullable Element sourceElement) {
 		if (sourceElement != null) {
 			boolean proxyTargetClass = Boolean.valueOf(sourceElement.getAttribute(PROXY_TARGET_CLASS_ATTRIBUTE));
 			if (proxyTargetClass) {
+				// 对 proxy-target-class 的处理；
 				AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
 			}
 			boolean exposeProxy = Boolean.valueOf(sourceElement.getAttribute(EXPOSE_PROXY_ATTRIBUTE));
 			if (exposeProxy) {
+				// 对 expose-proxy 的处理；
 				AopConfigUtils.forceAutoProxyCreatorToExposeProxy(registry);
 			}
 		}
 	}
 
+	// 注册组件并通知，便于监听器做进一步处理；
 	private static void registerComponentIfNecessary(@Nullable BeanDefinition beanDefinition, ParserContext parserContext) {
 		if (beanDefinition != null) {
 			BeanComponentDefinition componentDefinition =

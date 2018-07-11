@@ -16,14 +16,9 @@
 
 package org.springframework.aop.aspectj.autoproxy;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-
 import org.aopalliance.aop.Advice;
 import org.aspectj.util.PartialOrder;
 import org.aspectj.util.PartialOrder.PartialComparable;
-
 import org.springframework.aop.Advisor;
 import org.springframework.aop.aspectj.AbstractAspectJAdvice;
 import org.springframework.aop.aspectj.AspectJPointcutAdvisor;
@@ -32,6 +27,10 @@ import org.springframework.aop.framework.autoproxy.AbstractAdvisorAutoProxyCreat
 import org.springframework.aop.interceptor.ExposeInvocationInterceptor;
 import org.springframework.core.Ordered;
 import org.springframework.util.ClassUtils;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * {@link org.springframework.aop.framework.autoproxy.AbstractAdvisorAutoProxyCreator}
@@ -43,6 +42,23 @@ import org.springframework.util.ClassUtils;
  * @author Ramnivas Laddad
  * @since 2.0
  */
+/*
+AspectJAwareAdvisorAutoProxyCreator这个类是Spring提供给开发者的AOP的核心类，
+就是AspectJAwareAdvisorAutoProxyCreator完成了【类/接口–>代理】的转换过程。
+
+1. AspectJAwareAdvisorAutoProxyCreator 是 BeanPostProcessor 接口的实现类
+2. postProcessBeforeInitialization 方法与 postProcessAfterInitialization 方法实现在父类 AbstractAutoProxyCreator 中
+3. postProcessBeforeInitialization 方法是一个空实现
+4. 逻辑代码在postProcessAfterInitialization方法中。
+
+基于以上的分析，将Bean生成代理的时机已经一目了然了：
+	在每个Bean初始化之后，如果需要，调用 AspectJAwareAdvisorAutoProxyCreator 中的 postProcessAfterInitialization 为Bean生成代理。
+
+流程：
+	- AbstractAutowireCapableBeanFactory#initializeBean
+	- AbstractAutowireCapableBeanFactory#applyBeanPostProcessorsAfterInitialization
+	- AspectJAwareAdvisorAutoProxyCreator#postProcessAfterInitialization
+*/
 @SuppressWarnings("serial")
 public class AspectJAwareAdvisorAutoProxyCreator extends AbstractAdvisorAutoProxyCreator {
 

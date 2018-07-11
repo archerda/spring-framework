@@ -213,6 +213,15 @@ public abstract class AopUtils {
 	 * @return whether the pointcut can apply on any method
 	 */
 	public static boolean canApply(Pointcut pc, Class<?> targetClass, boolean hasIntroductions) {
+
+		/*
+		1. 目标类必须满足expression的匹配规则
+		2. 目标类中的方法必须满足expression的匹配规则，当然这里方法不是全部需要满足expression的匹配规则，有一个方法满足即可
+
+		如果以上两条都满足，那么容器则会判断该<bean>满足条件，需要被生成代理对象，
+		具体方式为返回一个数组对象，该数组对象中存储的是<bean>对应的Advisor。
+		 */
+
 		Assert.notNull(pc, "Pointcut must not be null");
 		if (!pc.getClassFilter().matches(targetClass)) {
 			return false;
@@ -268,6 +277,8 @@ public abstract class AopUtils {
 	 * @return whether the pointcut can apply on any method
 	 */
 	public static boolean canApply(Advisor advisor, Class<?> targetClass, boolean hasIntroductions) {
+		// 数advisor的实际类型是AspectJPointcutAdvisor，它是PointcutAdvisor的子类；
+
 		if (advisor instanceof IntroductionAdvisor) {
 			return ((IntroductionAdvisor) advisor).getClassFilter().matches(targetClass);
 		}
@@ -305,6 +316,7 @@ public abstract class AopUtils {
 				// already processed
 				continue;
 			}
+			// 关键；
 			if (canApply(candidate, clazz, hasIntroductions)) {
 				eligibleAdvisors.add(candidate);
 			}

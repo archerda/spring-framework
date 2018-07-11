@@ -33,6 +33,10 @@ import org.aopalliance.aop.Advice;
  * @author Rod Johnson
  * @author Juergen Hoeller
  */
+	// 完成对目标方法的切面增强设计（Advice）和关注点的设计（Pointcut）以后，需要一个对象把它们结合起来，
+	// 完成这个作用的就是 Advisor（通知器）。
+	// 通过 Advisor，可以定义应该使用哪个通知在哪个关注点使用它，也就是说通过 Advisor，把 Advice 和 Pointcut 结合起来，
+	// 这个接口为使用IoC容器配置AOP应用，或者说即开即用地使用AOP基础设施，提供了便利。
 public interface Advisor {
 
 	/**

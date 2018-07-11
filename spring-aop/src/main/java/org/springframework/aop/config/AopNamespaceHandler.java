@@ -16,7 +16,6 @@
 
 package org.springframework.aop.config;
 
-import org.springframework.aop.aspectj.AspectJExpressionPointcut;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
@@ -51,6 +50,10 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  * @author Adrian Colyer
  * @author Juergen Hoeller
  * @since 2.0
+ */
+/**
+ * Spring规则：命名空间xyz，那么对应的类是：XyzNamespaceHandler；
+ * 所以aop命名空间的处理类是：AopNamespaceHandler；
  */
 public class AopNamespaceHandler extends NamespaceHandlerSupport {
 
