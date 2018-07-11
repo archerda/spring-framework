@@ -80,6 +80,7 @@ public class BeanDefinitionVisitor {
 		visitFactoryMethodName(beanDefinition);
 		visitScope(beanDefinition);
 		if (beanDefinition.hasPropertyValues()) {
+			// 解析properties的占位符的值，并把key和value设置到 BeanDefinition 的 propertyValues 属性里面；
 			visitPropertyValues(beanDefinition.getPropertyValues());
 		}
 		if (beanDefinition.hasConstructorArgumentValues()) {
@@ -142,7 +143,7 @@ public class BeanDefinitionVisitor {
 	protected void visitPropertyValues(MutablePropertyValues pvs) {
 		PropertyValue[] pvArray = pvs.getPropertyValues();
 		for (PropertyValue pv : pvArray) {
-			// 解析获取新的值；
+			// 解析值；
 			Object newVal = resolveValue(pv.getValue());
 			// 新属性值与原属性值不等，用新属性值替换原属性值
 			if (!ObjectUtils.nullSafeEquals(newVal, pv.getValue())) {
@@ -220,6 +221,7 @@ public class BeanDefinitionVisitor {
 			}
 		}
 		else if (value instanceof String) {
+			// 解析字符串；
 			return resolveStringValue((String) value);
 		}
 		return value;
@@ -295,6 +297,7 @@ public class BeanDefinitionVisitor {
 					"object into the constructor or override the 'resolveStringValue' method");
 		}
 		// 调用 PlaceholderResolvingStringValueResolver；
+		// org/springframework/context/support/PropertySourcesPlaceholderConfigurer.java:181；
 		String resolvedValue = this.valueResolver.resolveStringValue(strVal);
 		// Return original String if not modified.
 		return (strVal.equals(resolvedValue) ? strVal : resolvedValue);

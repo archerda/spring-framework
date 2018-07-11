@@ -77,6 +77,10 @@ public class PropertySourcesPropertyResolver extends AbstractPropertyResolver {
 	@Nullable
 	protected <T> T getProperty(String key, Class<T> targetValueType, boolean resolveNestedPlaceholders) {
 		if (this.propertySources != null) {
+			// 有2个属性源：[environmentProperties,localProperties]
+			// 从这里可以看出，先从 environmentProperties 读取属性，再从 localProperties 读取属性值；
+			// 如果从 environmentProperties 读取到了，直接返回，不继续读取 localProperties；
+			// 所以 environmentProperties 的优先级高于 localProperties；
 			for (PropertySource<?> propertySource : this.propertySources) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Searching for key '" + key + "' in PropertySource '" +

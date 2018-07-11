@@ -75,6 +75,7 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 	public static final String ENVIRONMENT_PROPERTIES_PROPERTY_SOURCE_NAME = "environmentProperties";
 
 
+	// 存储配置文件的键值对；
 	@Nullable
 	private MutablePropertySources propertySources;
 
@@ -123,11 +124,14 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 	 * ignored</strong>. This method is designed to give the user fine-grained control over property
 	 * sources, and once set, the configurer makes no assumptions about adding additional sources.
 	 */
+	// 解析${占位符}
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		if (this.propertySources == null) {
 			this.propertySources = new MutablePropertySources();
 			if (this.environment != null) {
+				// 加载环境的所有资源；environmentProperties；
+				// 主要包括：servletConfigInitParams、servletContextInitParams、jndiProperties、systemProperties、systemEnvironment
 				this.propertySources.addLast(
 					new PropertySource<Environment>(ENVIRONMENT_PROPERTIES_PROPERTY_SOURCE_NAME, this.environment) {
 						@Override
@@ -139,11 +143,13 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 				);
 			}
 			try {
-				// 加载本地的所有资源；
+				// 加载本地的所有资源；localProperties；
 				// 之所以叫做合并是因为多个.properties文件中可能有相同的Key;
 				PropertySource<?> localPropertySource =
 						new PropertiesPropertySource(LOCAL_PROPERTIES_PROPERTY_SOURCE_NAME, mergeProperties());
+
 				if (this.localOverride) {
+					// 如果 localOverride 为true，那么把 localProperties 置到最高优先级，优先级高于 environmentProperties；
 					this.propertySources.addFirst(localPropertySource);
 				}
 				else {
@@ -165,6 +171,7 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 	 * Visit each bean definition in the given bean factory and attempt to replace ${...} property
 	 * placeholders with values from the given properties.
 	 */
+	// 设置占位符的值；
 	protected void processProperties(ConfigurableListableBeanFactory beanFactoryToProcess,
 			final ConfigurablePropertyResolver propertyResolver) throws BeansException {
 
@@ -175,7 +182,8 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 		// 设置值分隔符，如":"
 		propertyResolver.setValueSeparator(this.valueSeparator);
 
-		// 创建一个Bean定义访问工具，持有字符串值解析器，想见可以通过BeanDefinitionVisitor访问Bean定义，在遇到需要解析的字符串的时候使用构造函数传入的StringValueResolver解析字符串。
+		// 创建一个Bean定义访问工具，持有字符串值解析器，想见可以通过BeanDefinitionVisitor访问Bean定义，
+		// 在遇到需要解析的字符串的时候使用构造函数传入的StringValueResolver解析字符串。
 		StringValueResolver valueResolver = strVal -> {
 			String resolved = (ignoreUnresolvablePlaceholders ?
 					propertyResolver.resolvePlaceholders(strVal) :

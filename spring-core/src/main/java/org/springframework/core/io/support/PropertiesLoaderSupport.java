@@ -16,19 +16,18 @@
 
 package org.springframework.core.io.support;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.util.Properties;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.io.Resource;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DefaultPropertiesPersister;
 import org.springframework.util.PropertiesPersister;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.Properties;
 
 /**
  * Base class for JavaBean-style components that need to load properties
@@ -46,6 +45,9 @@ public abstract class PropertiesLoaderSupport {
 	@Nullable
 	protected Properties[] localProperties;
 
+	// PropertySourcesPlaceholderConfigurer的localOverride属性默认是false，表示如果在属性源中属性名和本地属性名一致，
+	// 那么优先采用本地属性值。可以调用setLocalOverride方法设置为true，这样属性源就可以覆盖本地属性了。
+	// 由于本地属性未知，所以一般将这个值设置为true。PropertyPlaceholderConfigurer没有localOverride，所以属性值是以属性源为准。
 	protected boolean localOverride = false;
 
 	@Nullable
@@ -152,6 +154,7 @@ public abstract class PropertiesLoaderSupport {
 		}
 
 		if (this.localProperties != null) {
+			// 多个属性文件循环读取，key 相同则覆盖
 			for (Properties localProp : this.localProperties) {
 				CollectionUtils.mergePropertiesIntoMap(localProp, result);
 			}

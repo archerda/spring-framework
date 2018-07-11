@@ -146,9 +146,13 @@ public class PropertyPlaceholderHelper {
 							"Circular placeholder reference '" + originalPlaceholder + "' in property definitions");
 				}
 				// Recursive invocation, parsing placeholders contained in the placeholder key.
+				// 循环调用，解析占位符里面的占位符；
 				placeholder = parseStringValue(placeholder, placeholderResolver, visitedPlaceholders);
 				// Now obtain the value for the fully resolved key...
+				// 现在获取占位符对应的值；
+				// org/springframework/core/env/AbstractPropertyResolver.java:206
 				String propVal = placeholderResolver.resolvePlaceholder(placeholder);
+
 				if (propVal == null && this.valueSeparator != null) {
 					int separatorIndex = placeholder.indexOf(this.valueSeparator);
 					if (separatorIndex != -1) {
