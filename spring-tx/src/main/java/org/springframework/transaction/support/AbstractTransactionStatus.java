@@ -152,6 +152,10 @@ public abstract class AbstractTransactionStatus implements TransactionStatus {
 	 * and release the savepoint right afterwards.
 	 */
 	public void rollbackToHeldSavepoint() throws TransactionException {
+		/*
+		保存点一般用于嵌入式事务，内嵌事务的回滚不会引起外部事务的回滚
+		 */
+
 		Object savepoint = getSavepoint();
 		if (savepoint == null) {
 			throw new TransactionUsageException(

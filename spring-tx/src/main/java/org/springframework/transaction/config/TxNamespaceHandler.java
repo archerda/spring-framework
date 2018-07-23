@@ -37,13 +37,18 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  * @author Juergen Hoeller
  * @since 2.0
  */
+// 事务<tx>命名空间处理器;
 public class TxNamespaceHandler extends NamespaceHandlerSupport {
 
+	// 事务管理器的属性名称;
 	static final String TRANSACTION_MANAGER_ATTRIBUTE = "transaction-manager";
 
+	// 事务管理器bean的默认名称
 	static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 
 
+	// 获取事务管理器的名称，取 "transaction-manager" 属性的值，
+	// 如果没有声明，就采用默认值 "transactionManager"；
 	static String getTransactionManagerName(Element element) {
 		return (element.hasAttribute(TRANSACTION_MANAGER_ATTRIBUTE) ?
 				element.getAttribute(TRANSACTION_MANAGER_ATTRIBUTE) : DEFAULT_TRANSACTION_MANAGER_BEAN_NAME);
